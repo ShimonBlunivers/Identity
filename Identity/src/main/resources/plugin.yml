@@ -10,3 +10,6 @@ commands:
     aliases:
       - ids
     name: identities
+  idboard:
+    description: Refreshes all scoreboards
+    name: idboard

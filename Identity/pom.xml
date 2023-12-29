@@ -38,7 +38,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-                <outputFile>D:\Programming\Java\Minecraft\Plugins\Test Spigot Server\plugins\IdentityPlugin.jar</outputFile>
+                <outputFile>D:\Programming\Java\Minecraft\Plugins\IdentityServer\plugins\Identity.jar</outputFile>
             </configuration>
           </execution>
         </executions>
