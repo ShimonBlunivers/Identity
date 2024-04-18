@@ -4,5 +4,4 @@ public class Rank {
 
     public int requiredLevel;
 
-
 }

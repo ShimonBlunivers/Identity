@@ -2,17 +2,23 @@ package me.blunivers.identity;
 
 
 import me.blunivers.identity.Environment.EnvironmentManager;
+import me.blunivers.identity.Health.Conditions.ConditionInstance;
+import me.blunivers.identity.Health.Conditions.VaccineInstance;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Health.HealthRegistry;
+import me.blunivers.identity.Items.ItemManager;
 import me.blunivers.identity.Jobs.Job;
 import me.blunivers.identity.Jobs.JobManager;
 
+import me.blunivers.identity.Jobs.Legal.Doctor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.*;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
 
 
 public class Commands implements CommandExecutor {
@@ -42,13 +48,23 @@ public class Commands implements CommandExecutor {
                     return false;
                 }
             } else if (label.equalsIgnoreCase("idboard")) {
-                HealthManager.addConditionToPlayer(player, HealthManager.cold);
-                HealthManager.addConditionToPlayer(player, HealthManager.tetanus);
-                sender.sendMessage(ChatColor.GREEN + "Infected!");
 //                EnvironmentManager.givePlayerCustomBlock(player, EnvironmentManager.CustomBlockID.CanalLid, Material.IRON_TRAPDOOR);
+
+            } else if (label.equalsIgnoreCase("idstick")) {
+                EnvironmentManager.givePlayerIdentityStick(player);
+
+            }   else if (label.equalsIgnoreCase("syringe")) {
+                player.getInventory().setItem(player.getInventory().getHeldItemSlot(), ItemManager.syringe.getItem(new String[]{"ColdCure"})); // ERROR WITH VACCINES HealthManager.tetanusVaccine.name
+            } else if (label.equalsIgnoreCase("infect")) {
+
+                HealthManager.addConditionToPlayer(player, HealthManager.cold);
+//                HealthManager.addConditionToPlayer(player, HealthManager.tetanus);
+                sender.sendMessage(ChatColor.YELLOW + "Infikován!");
+            }   else if (label.equalsIgnoreCase("cure")) {
+                HealthManager.curePlayer(player);
+                sender.sendMessage(ChatColor.GREEN + "Vyléčen!");
             }
         }
-
         return false;
     }
 
@@ -87,7 +103,7 @@ public class Commands implements CommandExecutor {
     }
     private boolean joinCommand(Player targetPlayer, Job targetJob) {
         JobManager.employPlayer(targetPlayer, targetJob);
-        ScoreboardManager.getInstance().updateEverything();
+        ScoreboardManager.getInstance().updateScoreboard(targetPlayer);
         return true;
     }
     private boolean progressCommand(Player targetPlayer, Job targetJob) {
@@ -96,7 +112,7 @@ public class Commands implements CommandExecutor {
     }
     private boolean leaveCommand(Player targetPlayer, Job targetJob) {
         JobManager.leave(targetPlayer, targetJob);
-        ScoreboardManager.getInstance().updateEverything();
+        ScoreboardManager.getInstance().updateScoreboard(targetPlayer);
         return true;
     }
 }

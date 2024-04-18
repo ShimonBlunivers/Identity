@@ -3,6 +3,7 @@ package me.blunivers.identity.Jobs;
 
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Identity;
+import me.blunivers.identity.Items.ItemManager;
 import me.blunivers.identity.Jobs.Illegal.*;
 import me.blunivers.identity.Jobs.Legal.*;
 import me.blunivers.identity.Manager;
@@ -10,7 +11,9 @@ import me.blunivers.identity.ScoreboardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,6 +42,8 @@ public class JobManager extends Manager implements Listener {
     public static final Job killer = new Killer("Vrah");
 
 
+    protected static String path = "";
+
     @Override
     public void load() {
         path = "jobs.";
@@ -60,15 +65,7 @@ public class JobManager extends Manager implements Listener {
         ScoreboardManager.getInstance().updateScoreboard(player);
     }
     @EventHandler
-
     public void injectSyringe(PlayerInteractAtEntityEvent event) {
-//        if (event.getRightClicked().getType().equals(EntityType.PLAYER)) {
-        if (event.getRightClicked().getType().equals(EntityType.PIG)) {
-            Player sender = event.getPlayer();
-//            Player target = (Player) event.getRightClicked();
-
-            sender.getInventory().setItem(sender.getInventory().getHeldItemSlot(), Doctor.getSyringe(HealthManager.tetanusVaccine));
-        }
     }
 
     public static void employPlayer(Player player, Job job) {

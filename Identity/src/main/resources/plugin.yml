@@ -13,3 +13,15 @@ commands:
   idboard:
     description: Refreshes all scoreboards
     name: idboard
+  idstick:
+    description: Gives you the Identity Stick
+    name: idstick
+  infect:
+    description: Infects player
+    name: infect
+  syringe:
+    description: Gives player syringe
+    name: syringe
+  cure:
+    description: Cures the player
+    name: cure

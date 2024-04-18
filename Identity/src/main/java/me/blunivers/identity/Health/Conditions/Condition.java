@@ -10,7 +10,8 @@ public abstract class Condition extends DataItem {
 
     protected ArrayList<PotionEffectType> effects = new ArrayList<>();
 
-    public Condition(String _displayName) {
+    public Condition(String _name, String _displayName) {
+        name = _name;
         displayName = _displayName;
         HealthManager.conditions.add(this);
     }
