@@ -10,8 +10,8 @@ import java.util.Random;
 
 public class Cold extends Illness {
     public Cold() {
-        super("Cold", "Rýma", 400, 100);
-        symptomsTimer = 200;
+        super("cold", "Rýma", 400);
+        symptomsChance = 10;
     }
     @Override
     public void symptoms(Player player) {
@@ -45,7 +45,6 @@ public class Cold extends Illness {
 
 
         int sneezeFactor = - 20 - random.nextInt(20); // 30
-
 
         playerLocation.setPitch(Math.min(Math.max(playerLocation.getPitch() - sneezeFactor, -90), 90));
         player.teleport(playerLocation);

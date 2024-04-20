@@ -4,8 +4,8 @@ import org.bukkit.entity.Player;
 
 public class Tetanus extends Illness {
     public Tetanus() {
-        super("Tetanus","Tetanus", 40, 7);
-        symptomsTimer = 20;
+        super("tetanus","Tetanus", 100);
+        symptomsChance = 40;
     }
 
     @Override

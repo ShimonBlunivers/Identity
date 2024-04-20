@@ -1,19 +1,16 @@
 package me.blunivers.identity.Items.Syringe;
 
-import me.blunivers.identity.Health.Conditions.Condition;
-import me.blunivers.identity.Health.Conditions.ConditionInstance;
+import me.blunivers.identity.Health.Conditions.ConditionType;
 import me.blunivers.identity.Health.Conditions.Illnesses.Illness;
-import me.blunivers.identity.Health.Conditions.Vaccine;
+import me.blunivers.identity.Health.Conditions.MedicationType;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Items.CustomItem;
 import me.blunivers.identity.Items.ItemManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -28,21 +25,21 @@ public class Syringe extends CustomItem {
     }
     @Override
     public ItemStack getItem(String[] content) {
-        ArrayList<Vaccine> vaccines = new ArrayList<>();
+        ArrayList<MedicationType> vaccines = new ArrayList<>();
         ArrayList<Illness> illnesses = new ArrayList<>();
         ArrayList<Illness> medications = new ArrayList<>();
 
         for (String entry : content) {
-            Vaccine vaccine = HealthManager.getVaccine(entry);
-            Condition condition = HealthManager.getCondition(entry);
+            MedicationType medicationType = MedicationType.get(entry);
+            ConditionType conditionType = ConditionType.get(entry);
 
-            if (vaccine != null) vaccines.add(vaccine);
-            if (condition instanceof Illness) illnesses.add((Illness) condition);
+            if (medicationType != null) vaccines.add(medicationType);
+            if (conditionType instanceof Illness) illnesses.add((Illness) conditionType);
 
             String[] meds = entry.split("Cure");
 
             if (meds.length > 0) {
-                Illness cureAgainst = (Illness) HealthManager.getCondition(meds[0]);
+                Illness cureAgainst = (Illness) ConditionType.get(meds[0]);
                 if (cureAgainst != null) medications.add(cureAgainst);
             }
         }
@@ -58,7 +55,7 @@ public class Syringe extends CustomItem {
 
         if (!vaccines.isEmpty()) {
             lore.add(ItemManager.listTitleMark + ChatColor.GRAY + "Očkování proti:");
-            for (Vaccine vaccine : vaccines) lore.add(ChatColor.GREEN + ItemManager.listItemMark + vaccine.protectionAgainst.displayName);
+            for (MedicationType medicationType : vaccines) lore.add(ChatColor.GREEN + ItemManager.listItemMark + medicationType.protectionAgainst.displayName);
         }
         if (!medications.isEmpty()) {
             lore.add(ItemManager.listTitleMark +  ChatColor.GRAY + "Protilátky proti:");
@@ -104,17 +101,13 @@ public class Syringe extends CustomItem {
                 sender.chat(listItem);
 
                 if (title.contains("Očkování")) {
-                    HealthManager.addVaccineToPlayer(target, HealthManager.getVaccine(listItem));
+                    HealthManager.addMedicationToPlayer(target, MedicationType.get(listItem));
                     target.chat("1");
                 }
-                if (title.contains("Protilátky")) {
-                    ConditionInstance conditionInstance = HealthManager.getHealthRegistry(target).getConditionInstance(HealthManager.getCondition(listItem));
-                    if (conditionInstance != null) conditionInstance.medicated = true;
-                    target.chat("2");
-                }
+
                 if (title.contains("Nemoci")) {
-                    HealthManager.addConditionToPlayer(target, HealthManager.getCondition(listItem));
-                    target.chat("3");
+                    HealthManager.addConditionToPlayer(target, ConditionType.get(listItem));
+                    target.chat("2");
                 }
             }
         }

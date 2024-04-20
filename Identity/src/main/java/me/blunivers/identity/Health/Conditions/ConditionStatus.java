@@ -7,6 +7,7 @@ public enum ConditionStatus {
     LETHAL(ChatColor.DARK_RED),
     MEDICATED(ChatColor.DARK_GREEN);
 
+    public static int maximalStage = 100;
     private final ChatColor color;
 
     ConditionStatus(ChatColor _color) {
