@@ -52,6 +52,8 @@ public class Identity extends JavaPlugin implements CommandExecutor, Listener {
 
         Commands commands = new Commands();
 
+        HealthManager.getInstance().load();
+
         try {
             database = new Database(getDataFolder().getAbsolutePath() + "/identity.sqlite.db");
         }catch (SQLException e){
@@ -80,7 +82,6 @@ public class Identity extends JavaPlugin implements CommandExecutor, Listener {
 
         JobManager.getInstance().load();
         EnvironmentManager.getInstance().load();
-        HealthManager.getInstance().load();
         ItemManager.getInstance().load();
         ScoreboardManager.getInstance().load();
 

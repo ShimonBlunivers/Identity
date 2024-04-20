@@ -8,6 +8,7 @@ import me.blunivers.identity.Jobs.JobInstance;
 import org.bukkit.entity.Player;
 import org.joml.Vector3i;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -47,18 +48,34 @@ public final class Database {
                 );
             """);
             statement.execute("""
-                CREATE TABLE IF NOT EXISTS health_conditions (
+                CREATE TABLE IF NOT EXISTS health_condition_types (
+                condition_id TEXT PRIMARY KEY,
+                time_before_next_stage INTEGER NOT NULL DEFAULT -88888,
+                illness BOOLEAN NOT NULL DEFAULT FALSE
+                );
+            """);
+            // MEDICATION -> CONDITION TABLE
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS health_medication_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                medication_id TEXT NOT NULL,
+                condition_id TEXT NOT NULL,
+                UNIQUE(medication_id, condition_id)
+                );
+            """);
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS health_condition_instances (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 condition_id TEXT NOT NULL,
                 player_id TEXT NOT NULL,
                 stage INTEGER NOT NULL DEFAULT 1,
-                time_before_next_stage INTEGER NOT NULL DEFAULT -1111,
+                time_before_next_stage INTEGER NOT NULL DEFAULT -99999,
                 hidden BOOLEAN NOT NULL DEFAULT TRUE,
                 UNIQUE(player_id, condition_id)
                 );
             """);
             statement.execute("""
-                CREATE TABLE IF NOT EXISTS health_medications (
+                CREATE TABLE IF NOT EXISTS health_medication_instances (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 medication_id TEXT NOT NULL,
                 player_id TEXT NOT NULL,
@@ -67,7 +84,19 @@ public final class Database {
                 UNIQUE(player_id, medication_id)
                 );
             """);
+            initializeTables(statement);
         }
+    }
+
+    private void initializeTables(Statement statement) throws SQLException {
+        for (ConditionType conditionType : ConditionType.conditions.values()) {
+            if (conditionType instanceof Illness illness)
+                statement.execute("INSERT OR REPLACE INTO health_condition_types (condition_id, time_before_next_stage, illness) VALUES ('" + illness.name + "', " + illness.ticksToNextStage + ", TRUE)");
+            else
+                statement.execute("INSERT OR REPLACE INTO health_condition_types (condition_id, illness) VALUES (" + conditionType.name  + ", FALSE)");
+        }
+        for (MedicationType medicationType : MedicationType.medications.values())
+            for (ConditionType against : medicationType.protectionAgainst) statement.execute("INSERT OR REPLACE INTO health_medication_types (medication_id, condition_id) VALUES ('" + medicationType.name  + "', '" + against.name + "')");
     }
 
     public void closeConnection() throws SQLException{
@@ -84,7 +113,6 @@ public final class Database {
             System.out.println("Failed to execute players_join! " + e.getMessage());
         }
     }
-
     public void players_leave(Player player) {
         try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE players SET ONLINE = FALSE WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
@@ -100,6 +128,9 @@ public final class Database {
             System.out.println("Failed to execute players_reset! " + e.getMessage());
         }
     }
+
+
+
     public void jobs_employPlayer(Player player, JobType jobType) {
         try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO jobs (job_id, player_id) VALUES (?, ?)")) {
             preparedStatement.setString(1, jobType.name);
@@ -282,15 +313,15 @@ public final class Database {
 
 
     public void health_addCondition(Player player, ConditionType conditionType) {
-        String statement = "INSERT INTO health_conditions (player_id, condition_id";
-        if (conditionType instanceof Illness) statement += ", time_before_next_stage) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO health_condition_instances (player_id, condition_id";
+        if (conditionType instanceof Illness) statement += ", time_before_next_stage, time_before_next_stage) VALUES (?, ?, ?, ?)";
         else statement += ") VALUES (?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.setString(2, conditionType.name);
-            if (conditionType instanceof Illness){
-                Illness illness = (Illness) conditionType;
+            if (conditionType instanceof Illness illness){
                 preparedStatement.setInt(3, illness.ticksToNextStage);
+                preparedStatement.setInt(4, illness.ticksToNextStage);
             }
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -298,7 +329,7 @@ public final class Database {
         }
     }
     public void health_removeCondition(Player player, ConditionType conditionType) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_conditions WHERE player_id = ? AND condition_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_condition_instances WHERE player_id = ? AND condition_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.setString(2, conditionType.name);
             preparedStatement.executeUpdate();
@@ -307,7 +338,7 @@ public final class Database {
         }
     }
     public void health_showCondition(Player player, ConditionType conditionType) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE health_conditions SET hidden = FALSE WHERE player_id = ? AND condition_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE health_condition_instances SET hidden = FALSE WHERE player_id = ? AND condition_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.setString(2, conditionType.name);
             preparedStatement.executeUpdate();
@@ -317,7 +348,7 @@ public final class Database {
     }
     public void health_addMedication(Player player, MedicationType medicationType) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "INSERT OR REPLACE INTO health_medications (player_id, medication_id, time_before_expiration, expired) " +
+                "INSERT OR REPLACE INTO health_medication_instances (player_id, medication_id, time_before_expiration, expired) " +
                         "VALUES (?, ?, ?, FALSE)")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.setString(2, medicationType.name);
@@ -327,9 +358,8 @@ public final class Database {
             System.out.println("Failed to execute health_addMedication! " + e.getMessage());
         }
     }
-
     public void health_removeMedication(Player player, MedicationType medicationType) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medications WHERE player_id = ? AND medication_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medication_instances WHERE player_id = ? AND medication_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.setString(2, medicationType.name);
             preparedStatement.executeUpdate();
@@ -339,7 +369,7 @@ public final class Database {
     }
     public void health_updateMedications(int ticks) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "UPDATE health_medications SET " +
+                "UPDATE health_medication_instances SET " +
                         "time_before_expiration = time_before_expiration - ?, " +
                         "expired = CASE " +
                             "WHEN time_before_expiration - ? <= 0 THEN TRUE " +
@@ -355,47 +385,54 @@ public final class Database {
     }
     public void health_updateConditions(int ticks) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "UPDATE health_conditions SET " +
-                        "time_before_next_stage = time_before_next_stage - ? " +
-                        "WHERE player_id IN (" +
-                        "SELECT player_id FROM players WHERE online = TRUE)")){
+                "UPDATE health_condition_instances SET time_before_next_stage = time_before_next_stage - ? " +
+                        "WHERE player_id IN (SELECT player_id FROM players WHERE online = TRUE)")){
             preparedStatement.setInt(1, ticks);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Failed to execute health_updateConditions! " + e.getMessage());
         }
     }
-
-    public void health_progressCondition(Player player, ConditionType conditionType) {
-        String statement;
-        if (conditionType instanceof Illness) statement = "UPDATE health_conditions SET stage = stage + 1, time_before_next_stage = ? WHERE player_id = ? AND condition_id = ?";
-        else statement = "UPDATE health_conditions SET stage = stage + 1, time_before_next_stage = -1111 WHERE player_id = ? AND condition_id = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(statement)){
-
-            if (conditionType instanceof Illness){
-                Illness illness = (Illness) conditionType;
-                preparedStatement.setInt(1, illness.ticksToNextStage);
-                preparedStatement.setString(2, player.getUniqueId().toString());
-                preparedStatement.setString(3, conditionType.name);
-            }
-            else {
-                preparedStatement.setString(1, player.getUniqueId().toString());
-                preparedStatement.setString(2, conditionType.name);
-            }
+    public void health_progressConditions() {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "UPDATE health_condition_instances " +
+                        "SET stage = CASE " +
+                        "WHEN EXISTS (" +
+                        "SELECT 1 FROM health_medication_types hmt " +
+                        "JOIN health_medication_instances hmi ON hmt.medication_id = hmi.medication_id " +
+                        "WHERE hmt.condition_id = health_condition_instances.condition_id " +
+                        "AND hmi.player_id = health_condition_instances.player_id AND hmi.expired = FALSE) " +
+                        "THEN stage - 1 " +
+                        "ELSE stage + 1 " +
+                        "END, " +
+                        "time_before_next_stage = (" +
+                        "SELECT time_before_next_stage FROM health_condition_types " +
+                        "WHERE condition_id = health_condition_instances.condition_id) " +
+                        "WHERE time_before_next_stage <= 0 AND time_before_next_stage > -77777")) {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Failed to execute health_progressCondition! " + e.getMessage());
+            System.out.println("Failed to execute health_progressConditions! " + e.getMessage());
+        }
+    }
+
+    public void health_healConditions(){
+        ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
+        String statement = "DELETE FROM health_condition_instances WHERE stage <= 0";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Failed to execute health_healConditions! " + e.getMessage());
         }
     }
 
     public void health_resetEverything(Player player) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_conditions WHERE player_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_condition_instances WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Failed to execute health_resetEverything Conditions! " + e.getMessage());
         }
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medications WHERE player_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medication_instances WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -403,7 +440,7 @@ public final class Database {
         }
     }
     public void health_resetConditions(Player player) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_conditions WHERE player_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_condition_instances WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -411,7 +448,7 @@ public final class Database {
         }
     }
     public void health_resetMedications(Player player) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medications WHERE player_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM health_medication_instances WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -421,7 +458,7 @@ public final class Database {
 
     public ArrayList<ConditionInstance> health_getConditionInstances(Player player, boolean showHidden) {
         ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
-        String statement = "SELECT * FROM health_conditions WHERE player_id = ?";
+        String statement = "SELECT * FROM health_condition_instances WHERE player_id = ?";
         if (!showHidden) statement += " AND hidden = FALSE";
         try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
             preparedStatement.setString(1, player.getUniqueId().toString());
@@ -436,7 +473,7 @@ public final class Database {
     }
     public ArrayList<MedicationInstance> health_getMedicationInstances(Player player) {
         ArrayList<MedicationInstance> medicationInstances = new ArrayList<>();
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM health_medications WHERE player_id = ?")) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM health_medication_instances WHERE player_id = ?")) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()){
@@ -447,15 +484,14 @@ public final class Database {
         }
         return medicationInstances;
     }
-    public ArrayList<ConditionInstance> health_getLethalConditionInstances(Player player){
+    public ArrayList<ConditionInstance> health_getLethalConditionInstances(){
             ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
-            String statement = "SELECT * FROM health_conditions WHERE player_id = ? AND stage > ?";
+            String statement = "SELECT * FROM health_condition_instances WHERE stage > ?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.setString(1, player.getUniqueId().toString());
-                preparedStatement.setInt(2, ConditionStatus.maximalStage);
+                preparedStatement.setInt(1, ConditionStatus.maximalStage);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()){
-                    conditionInstances.add(new ConditionInstance(resultSet.getInt("id"), ConditionType.get(resultSet.getString("condition_id")), player.getUniqueId().toString(), resultSet.getInt("stage"), resultSet.getBoolean("hidden")));
+                    conditionInstances.add(new ConditionInstance(resultSet.getInt("id"), ConditionType.get(resultSet.getString("condition_id")), resultSet.getString("player_id"), resultSet.getInt("stage"), resultSet.getBoolean("hidden")));
                 }
             } catch (SQLException e) {
                 System.out.println("Failed to execute health_getLethalConditionInstances! " + e.getMessage());
@@ -464,7 +500,7 @@ public final class Database {
         }
     public ArrayList<ConditionInstance> health_getProgressedConditionInstances(Player player){
         ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
-        String statement = "SELECT * FROM health_conditions WHERE player_id = ? AND time_before_next_stage < 0 AND time_before_next_stage > -1000";
+        String statement = "SELECT * FROM health_condition_instances WHERE player_id = ? AND time_before_next_stage < 0 AND time_before_next_stage > -1000";
         try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
             preparedStatement.setString(1, player.getUniqueId().toString());
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -477,6 +513,3 @@ public final class Database {
         return conditionInstances;
     }
 }
-
-
-

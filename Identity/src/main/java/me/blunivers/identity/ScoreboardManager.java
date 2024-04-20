@@ -13,6 +13,7 @@ import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 
@@ -52,36 +53,59 @@ public class ScoreboardManager extends Manager implements Listener {
 
         if (jobString.isEmpty()) jobString.add("Nezaměstnaný");
 
-        String healthString = "";
-        if (HealthManager.getHealthConditions(player).isEmpty()) healthString = ChatColor.GREEN + "Zdravý";
-        else healthString = ChatColor.RED + HealthManager.getHealthConditions(player);
+        int scoreindex = 10;
 
+        ArrayList<String> healthString = HealthManager.getHealthConditions(player);
+        boolean healthy = true;
+        int maximumEntriesOfConditions = 6;
+        if (!healthString.isEmpty()) {
+            healthy = HealthManager.isHealthy(player);
+            scoreindex += Math.min(maximumEntriesOfConditions, healthString.size());
+        }
 
-        objective.getScore(ChatColor.WHITE + "                         ")
-                                                                                        .setScore(11);
         objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD + "Jméno:")
-                                                                                        .setScore(10);
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
         objective.getScore(ChatColor.AQUA + player.getDisplayName())
-                                                                                        .setScore(9);
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
         objective.getScore(ChatColor.WHITE + "        ")
-                                                                                        .setScore(8);
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
         objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD +"Povolání:")
-                                                                                        .setScore(7);
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
         objective.getScore(ChatColor.GRAY + String.join(", ", jobString))
-                                                                                        .setScore(6);
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
         objective.getScore(ChatColor.WHITE + "              ")
-                                                                                        .setScore(5);
-        objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD + "Stav:")
-                                                                                        .setScore(4);
-        objective.getScore(healthString)
-                                                                                        .setScore(3);
-        objective.getScore(ChatColor.WHITE + "                 ")
-                                                                                        .setScore(2);
-        objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD + "Zůstatek:")
-                                                                                        .setScore(1);
-        objective.getScore(ChatColor.GOLD + "0 Peněz")
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
+        objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD + "Stav: " + (healthy ? ChatColor.GREEN + "Zdravý" : ""))
+                                                                                        .setScore(scoreindex);
 
-                                                                                        .setScore(0);
+        int numberOfEntriesOfConditions = Math.min(maximumEntriesOfConditions, healthString.size());
+        for (int i = 1; i <= numberOfEntriesOfConditions; i++){
+            int index = scoreindex - i;
+            System.out.println("i : " + i + "   index : " + index + "   scoreindex : " + scoreindex);
+            if (numberOfEntriesOfConditions == maximumEntriesOfConditions && i == numberOfEntriesOfConditions)
+                objective.getScore(" . . . ")
+                        .setScore(index);
+
+            else
+                objective.getScore(healthString.get(i - 1))
+                                                                                           .setScore(index);
+        }
+
+        scoreindex -= numberOfEntriesOfConditions + 1;
+        objective.getScore(ChatColor.WHITE + "                 ")
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
+        objective.getScore(ChatColor.WHITE + "" + ChatColor.BOLD + "Zůstatek:")
+                                                                                        .setScore(scoreindex);
+        scoreindex--;
+        objective.getScore(ChatColor.GOLD + "0 Peněz")
+                                                                                        .setScore(scoreindex);
         player.setScoreboard(scoreboard);
 
     }

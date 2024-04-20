@@ -1,13 +1,10 @@
 package me.blunivers.identity.Health;
 
 
-import me.blunivers.identity.Health.Conditions.ConditionType;
-import me.blunivers.identity.Health.Conditions.ConditionInstance;
+import me.blunivers.identity.Health.Conditions.*;
 import me.blunivers.identity.Health.Conditions.Illnesses.Cold;
 import me.blunivers.identity.Health.Conditions.Illnesses.Illness;
 import me.blunivers.identity.Health.Conditions.Illnesses.Tetanus;
-import me.blunivers.identity.Health.Conditions.MedicationType;
-import me.blunivers.identity.Health.Conditions.MedicationInstance;
 import me.blunivers.identity.Identity;
 import me.blunivers.identity.Items.Syringe.Syringe;
 import me.blunivers.identity.Manager;
@@ -19,24 +16,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 public class HealthManager extends Manager implements Runnable, Listener {
     private final static HealthManager instance = new HealthManager();
-    // Conditions
-    public static final ConditionType tetanus = new Tetanus();
-    public static final ConditionType cold = new Cold();
-
-    // Vaccines
-    public static final MedicationType tetanusVaccine = new MedicationType("Očkování proti Tetanu", (Illness) tetanus);
-
 
     @Override
     public void load() {
+        // Conditions
+        new Tetanus();
+        new Cold();
 
+        // Medications
+        new MedicationType("tetanus_vaccine", "Očkování proti Tetanu", (Illness) ConditionType.get("tetanus"));
     }
 
     @EventHandler
@@ -44,20 +42,24 @@ public class HealthManager extends Manager implements Runnable, Listener {
         Player player = event.getPlayer();
     }
 
-    public static String getHealthConditions(Player player) {
+    public static ArrayList<String> getHealthConditions(Player player) {
         ArrayList<ConditionInstance> conditionInstances = Identity.database.health_getConditionInstances(player, false);
         ArrayList<MedicationInstance> medicationInstances = Identity.database.health_getMedicationInstances(player);
 
         ArrayList<String> healthText = new ArrayList<>();
 
         for (ConditionInstance conditionInstance : conditionInstances){
-            healthText.add(conditionInstance.conditionType.toString());
+            healthText.add(ConditionStatus.getStatus(conditionInstance, medicationInstances) + conditionInstance.conditionType.toString());
         }
 
         for (MedicationInstance medicationInstance : medicationInstances){
-            healthText.add(ChatColor.BLUE + medicationInstance.toString());
+            if (!medicationInstance.expired) healthText.add(ChatColor.AQUA + medicationInstance.toString());
         }
-        return String.join(", ", healthText);
+        return healthText;
+    }
+
+    public static boolean isHealthy(Player player){
+        return Identity.database.health_getConditionInstances(player, false).isEmpty();
     }
 
     public static HealthManager getInstance() {
@@ -102,18 +104,29 @@ public class HealthManager extends Manager implements Runnable, Listener {
         Identity.database.health_updateConditions(ticks);
         Identity.database.health_updateMedications(ticks);
         Random random = new Random();
+
+
+        Identity.database.health_progressConditions();
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             for (ConditionInstance conditionInstance : Identity.database.health_getConditionInstances(player, true))
-                if (conditionInstance.conditionType instanceof Illness) {
-                    Illness illness = (Illness) conditionInstance.conditionType;
+                if (conditionInstance.conditionType instanceof Illness illness) {
+                    for (PotionEffectType effectType : conditionInstance.conditionType.effects) player.addPotionEffect(new PotionEffect(effectType, Identity.healthManagerTimer + 2, (1 + conditionInstance.stage / 10)));
                     if (random.nextInt(0, illness.symptomsChance) == 0) {
                         illness.symptoms(player);
-                        Identity.database.health_showCondition(player, conditionInstance.conditionType);
+                        Identity.database.health_showCondition(player, conditionInstance.conditionType); // SHOWS THE HIDDEN CONDITION
                     }
                 }
-            for (ConditionInstance conditionInstance : Identity.database.health_getProgressedConditionInstances(player))
-                Identity.database.health_progressCondition(player, conditionInstance.conditionType);
         }
+
+        for (ConditionInstance conditionInstance : Identity.database.health_getLethalConditionInstances()){
+            Illness illness = (Illness) conditionInstance.conditionType;
+            killPlayer(Bukkit.getPlayer(UUID.fromString(conditionInstance.playerID)), illness);
+        }
+
+
+        Identity.database.health_healConditions();
+
         ScoreboardManager.getInstance().updateEverything();
     }
 

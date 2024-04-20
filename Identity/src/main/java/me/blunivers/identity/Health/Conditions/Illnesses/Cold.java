@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class Cold extends Illness {
     public Cold() {
-        super("cold", "Rýma", 400);
+        super("cold", "Rýma", 1000);
         symptomsChance = 10;
     }
     @Override

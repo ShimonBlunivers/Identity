@@ -2,6 +2,7 @@ package me.blunivers.identity;
 
 
 import me.blunivers.identity.Environment.EnvironmentManager;
+import me.blunivers.identity.Health.Conditions.ConditionType;
 import me.blunivers.identity.Health.Conditions.MedicationType;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Items.ItemManager;
@@ -50,10 +51,10 @@ public class Commands implements CommandExecutor {
                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), ItemManager.syringe.getItem(new String[]{"ColdCure"})); // ERROR WITH VACCINES HealthManager.tetanusVaccine.name
             } else if (label.equalsIgnoreCase("infect")) {
 //                HealthManager.addConditionToPlayer(player, HealthManager.cold);
-                HealthManager.addConditionToPlayer(player, HealthManager.tetanus);
+                HealthManager.addConditionToPlayer(player, ConditionType.get("tetanus"));
                 sender.sendMessage(ChatColor.YELLOW + "Infikován!");
             }   else if (label.equalsIgnoreCase("cure")) {
-                Identity.database.health_addMedication(player, MedicationType.medications.get("tetanus_medication"));
+                Identity.database.health_addMedication(player, MedicationType.medications.get("tetanus_vaccine"));
 //                HealthManager.curePlayer(player);
                 sender.sendMessage(ChatColor.GREEN + "Vyléčen!");
             }

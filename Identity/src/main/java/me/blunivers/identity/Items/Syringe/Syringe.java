@@ -33,7 +33,7 @@ public class Syringe extends CustomItem {
             MedicationType medicationType = MedicationType.get(entry);
             ConditionType conditionType = ConditionType.get(entry);
 
-            if (medicationType != null) vaccines.add(medicationType);
+//            if (medicationType != null) for (ConditionType against : medicationType.protectionAgainst) vaccines.add(against.displayName);
             if (conditionType instanceof Illness) illnesses.add((Illness) conditionType);
 
             String[] meds = entry.split("Cure");
@@ -55,7 +55,7 @@ public class Syringe extends CustomItem {
 
         if (!vaccines.isEmpty()) {
             lore.add(ItemManager.listTitleMark + ChatColor.GRAY + "Očkování proti:");
-            for (MedicationType medicationType : vaccines) lore.add(ChatColor.GREEN + ItemManager.listItemMark + medicationType.protectionAgainst.displayName);
+            for (MedicationType medicationType : vaccines) lore.add(ChatColor.GREEN + ItemManager.listItemMark + "Syringe.java dodelat -58");
         }
         if (!medications.isEmpty()) {
             lore.add(ItemManager.listTitleMark +  ChatColor.GRAY + "Protilátky proti:");
