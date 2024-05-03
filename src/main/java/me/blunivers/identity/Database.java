@@ -1,17 +1,19 @@
 package me.blunivers.identity;
 
-import me.blunivers.identity.Environment.CustomBlockInstance;
+import me.blunivers.identity.Environment.BlockInstance;
+import me.blunivers.identity.Environment.BlockType;
 import me.blunivers.identity.Health.Conditions.*;
 import me.blunivers.identity.Health.Conditions.Illnesses.Illness;
 import me.blunivers.identity.Jobs.JobType;
 import me.blunivers.identity.Jobs.JobInstance;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.joml.Vector3i;
 
 import java.sql.*;
 import java.util.ArrayList;
 
-public final class Database {
+public class Database {
 
     private final Connection connection;
 
@@ -203,21 +205,23 @@ public final class Database {
 
 
 
-    public void environment_placeCustomBlock(Vector3i position, CustomBlockInstance.BLOCK_ID block_id, String world) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO environment_blocks (block_id, x, y, z, world) VALUES (?, ?, ?, ?, ?)")) {
-            preparedStatement.setString(1, block_id.name());
-            preparedStatement.setInt(2, position.x);
-            preparedStatement.setInt(3, position.y);
-            preparedStatement.setInt(4, position.z);
+    public BlockInstance environment_placeCustomBlock(int x, int y, int z, BlockType blockType, String world, String metadata) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO environment_blocks (block_id, x, y, z, world, metadata) VALUES (?, ?, ?, ?, ?, ?)")) {
+            preparedStatement.setString(1, blockType.name);
+            preparedStatement.setInt(2, x);
+            preparedStatement.setInt(3, y);
+            preparedStatement.setInt(4, z);
             preparedStatement.setString(5, world);
+            preparedStatement.setString(6, metadata);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Failed to execute environment_placeCustomBlock Vector3! " + e.getMessage());
+            System.out.println("Failed to execute environment_placeCustomBlock with metadata! " + e.getMessage());
         }
+        return environment_getCustomBlockInstance(x, y, z, world);
     }
-    public void environment_placeCustomBlock(int x, int y, int z, CustomBlockInstance.BLOCK_ID block_id, String world) {
+    public BlockInstance environment_placeCustomBlock(int x, int y, int z, BlockType blockType, String world) {
         try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO environment_blocks (block_id, x, y, z, world) VALUES (?, ?, ?, ?, ?)")) {
-            preparedStatement.setString(1, block_id.name());
+            preparedStatement.setString(1, blockType.name);
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);
@@ -226,7 +230,23 @@ public final class Database {
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_placeCustomBlock! " + e.getMessage());
         }
+        return environment_getCustomBlockInstance(x, y, z, world);
     }
+    public void environment_addMetadataToBlock(int x, int y, int z, String world, String metadata) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE environment_blocks SET metadata = ? WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+            preparedStatement.setString(1, metadata);
+            preparedStatement.setInt(2, x);
+            preparedStatement.setInt(3, y);
+            preparedStatement.setInt(4, z);
+            preparedStatement.setString(5, world);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Failed to execute environment_addMetadataToBlock! " + e.getMessage());
+        }
+    }
+
+
+
     public void environment_removeCustomBlock(int x, int y, int z, String world) {
         try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
             preparedStatement.setInt(1, x);
@@ -238,77 +258,50 @@ public final class Database {
             System.out.println("Failed to execute environment_removeCustomBlock! " + e.getMessage());
         }
     }
-    public void environment_removeCustomBlock(Vector3i position, String world) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
-            preparedStatement.setInt(1, position.x);
-            preparedStatement.setInt(2, position.y);
-            preparedStatement.setInt(3, position.z);
-            preparedStatement.setString(4, world);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println("Failed to execute environment_removeCustomBlock Vector3! " + e.getMessage());
-        }
-    }
 
-    public ArrayList<CustomBlockInstance> environment_getCustomBlockInstances(CustomBlockInstance.BLOCK_ID block_id, String world) {
-        ArrayList<CustomBlockInstance> customBlockInstances = new ArrayList<>();
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, x, y, z FROM environment_blocks WHERE block_id = ? AND world = ?")) {
-            preparedStatement.setString(1, block_id.name());
+    public ArrayList<BlockInstance> environment_getCustomBlockInstances(BlockType blockType, String world) {
+        ArrayList<BlockInstance> blockInstances = new ArrayList<>();
+        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, x, y, z, metadata FROM environment_blocks WHERE block_id = ? AND world = ?")) {
+            preparedStatement.setString(1, blockType.name);
             preparedStatement.setString(2, world);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()){
-                customBlockInstances.add(new CustomBlockInstance(resultSet.getInt("id"), block_id, new Vector3i(resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z")), world));
+                blockInstances.add(new BlockInstance(resultSet.getInt("id"), blockType, new Vector3i(resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z")), Bukkit.getWorld(world), resultSet.getString("metadata")));
             }
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_getCustomBlockInstances! " + e.getMessage());
         }
-        return customBlockInstances;
+        return blockInstances;
     }
-    public ArrayList<CustomBlockInstance> environment_getCustomBlockInstances() {
-        ArrayList<CustomBlockInstance> customBlockInstances = new ArrayList<>();
+    public ArrayList<BlockInstance> environment_getCustomBlockInstances() {
+        ArrayList<BlockInstance> blockInstances = new ArrayList<>();
         try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM environment_blocks")) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()){
-                customBlockInstances.add(new CustomBlockInstance(resultSet.getInt("id"), resultSet.getString("block_id"), new Vector3i(resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z")), resultSet.getString("world")));
+                blockInstances.add(new BlockInstance(resultSet.getInt("id"), BlockType.get(resultSet.getString("block_id")), new Vector3i(resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z")), Bukkit.getWorld(resultSet.getString("world")), resultSet.getString("metadata")));
             }
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_getCustomBlockInstances All! " + e.getMessage());
         }
-        return customBlockInstances;
+        return blockInstances;
     }
-    public CustomBlockInstance environment_getCustomBlockInstance(Vector3i position, String world) {
-        CustomBlockInstance customBlockInstance = null;
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, block_id FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
-            preparedStatement.setInt(1, position.x);
-            preparedStatement.setInt(2, position.y);
-            preparedStatement.setInt(3, position.z);
-            preparedStatement.setString(4, world);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                customBlockInstance = new CustomBlockInstance(resultSet.getInt("id"), resultSet.getString("block_id"), position, world);
-            }
-        } catch (SQLException e) {
-            System.out.println("Failed to execute environment_getCustomBlockInstance! " + e.getMessage());
-        }
-        return customBlockInstance;
-    }
-    public CustomBlockInstance environment_getCustomBlockInstance(int x, int y, int z, String world) {
-        CustomBlockInstance customBlockInstance = null;
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, block_id FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+
+    public BlockInstance environment_getCustomBlockInstance(int x, int y, int z, String world) {
+        BlockInstance blockInstance = null;
+        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, block_id, metadata FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
             preparedStatement.setInt(1, x);
             preparedStatement.setInt(2, y);
             preparedStatement.setInt(3, z);
             preparedStatement.setString(4, world);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                customBlockInstance = new CustomBlockInstance(resultSet.getInt("id"), resultSet.getString("block_id"), new Vector3i(x, y, z), world);
+                blockInstance = new BlockInstance(resultSet.getInt("id"), BlockType.get(resultSet.getString("block_id")), new Vector3i(x, y, z), Bukkit.getWorld(world), resultSet.getString("metadata"));
             }
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_getCustomBlockInstance! " + e.getMessage());
         }
-        return customBlockInstance;
+        return blockInstance;
     }
-
 
 
     public void health_addCondition(Player player, ConditionType conditionType) {

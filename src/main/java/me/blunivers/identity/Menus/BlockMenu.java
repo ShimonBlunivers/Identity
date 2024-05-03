@@ -1,6 +1,6 @@
 package me.blunivers.identity.Menus;
 
-import me.blunivers.identity.Environment.CustomBlockInstance;
+import me.blunivers.identity.Environment.BlockType;
 import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Identity;
 import org.bukkit.Bukkit;
@@ -21,10 +21,10 @@ import java.util.List;
 
 import static me.blunivers.identity.Environment.EnvironmentManager.getCustomItem;
 
-public class Menu implements Listener, CommandExecutor {
+public class BlockMenu implements Listener, CommandExecutor {
     private final String menuName = "Výběr Identity Bloků";
 
-    public Menu() {
+    public BlockMenu() {
         Bukkit.getPluginManager().registerEvents(this, Identity.instance);
     }
 
@@ -32,13 +32,11 @@ public class Menu implements Listener, CommandExecutor {
     public void onInventoryClick(InventoryClickEvent event){
         if (!event.getView().getTitle().equals(menuName)) return;
         event.setCancelled(true);
-        if (event.getSlot() > CustomBlockInstance.BLOCK_ID.values().length - 1) return;
-
+        if (event.getSlot() > BlockType.get().values().size() - 1) return;
 
         Player player = (Player) event.getWhoClicked();
-        CustomBlockInstance.BLOCK_ID block_id = CustomBlockInstance.BLOCK_ID.values()[event.getSlot()];
-
-        player.getInventory().addItem(getCustomItem(block_id));
+        BlockType blockType = BlockType.get(event.getClickedInventory().getItem(event.getSlot()).getItemMeta().getDisplayName());
+        if (blockType != null) player.getInventory().addItem(getCustomItem(blockType));
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] ars) {
@@ -47,10 +45,14 @@ public class Menu implements Listener, CommandExecutor {
             return true;
         }
 
-        int invSize = 9 + (CustomBlockInstance.BLOCK_ID.values().length / 9) * 9;
+        int invSize = 9 + (BlockType.get().values().size() / 9) * 9;
         Inventory inventory = Bukkit.createInventory(player, invSize, menuName);
 
-        for (CustomBlockInstance.BLOCK_ID block_id : CustomBlockInstance.BLOCK_ID.values()) inventory.setItem(block_id.ordinal(), EnvironmentManager.getCustomItemWithoutLabel(block_id));
+        int i = 0;
+        for (BlockType blockType : BlockType.get().values()) {
+            inventory.setItem(i++, EnvironmentManager.getCustomItemWithoutLabel(blockType));
+        }
+
 
         player.openInventory(inventory);
 

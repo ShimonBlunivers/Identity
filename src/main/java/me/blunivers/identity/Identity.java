@@ -5,7 +5,7 @@ import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Items.ItemManager;
 import me.blunivers.identity.Jobs.JobManager;
-import me.blunivers.identity.Menus.Menu;
+import me.blunivers.identity.Menus.BlockMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.*;
@@ -72,7 +72,7 @@ public class Identity extends JavaPlugin implements CommandExecutor, Listener {
         getCommand("syringe").setExecutor(commands);
         getCommand("cure").setExecutor(commands);
 
-        getCommand("idblocks").setExecutor(new Menu());
+        getCommand("idblocks").setExecutor(new BlockMenu());
 
         getServer().getPluginManager().registerEvents(JobManager.getInstance(), this);
         getServer().getPluginManager().registerEvents(EnvironmentManager.getInstance(), this);
