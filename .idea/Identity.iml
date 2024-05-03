@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
-  <component name="AdditionalModuleElements">
-    <content url="file://$MODULE_DIR$" />
-  </component>
+<module version="4">
   <component name="FacetManager">
     <facet type="minecraft" name="Minecraft">
       <configuration>
+        <userChosenTypes>
+          <map>
+            <entry key="ADVENTURE" value="false" />
+          </map>
+        </userChosenTypes>
         <autoDetectTypes>
-          <platformType>SPIGOT</platformType>
+          <platformType>PAPER</platformType>
+          <platformType>ADVENTURE</platformType>
         </autoDetectTypes>
         <projectReimportVersion>1</projectReimportVersion>
       </configuration>
