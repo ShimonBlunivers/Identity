@@ -1,10 +1,8 @@
 package me.blunivers.identity.Environment;
 
-import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.joml.Vector3i;
-
-import java.util.Map;
 
 public class BlockInstance {
 
@@ -17,6 +15,9 @@ public class BlockInstance {
     public World world;
     public String metadata;
 
+    public Block block;
+    public Block offsetted_block;
+
     public BlockInstance(int id, BlockType blockType, Vector3i position, World world, String metadata) {
         this.id = id;
         this.blockType = blockType;
@@ -26,6 +27,10 @@ public class BlockInstance {
         this.z = position.z;
         this.world = world;
         this.metadata = metadata;
+
+        this.block = world.getBlockAt(x, y, z);
+        this.offsetted_block = world.getBlockAt(x - blockType.offset.x, y - blockType.offset.y, z - blockType.offset.z);
+
     }
 
 

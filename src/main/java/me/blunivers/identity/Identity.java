@@ -8,7 +8,6 @@ import me.blunivers.identity.Jobs.JobManager;
 import me.blunivers.identity.Menus.BlockMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,7 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class Identity extends JavaPlugin implements CommandExecutor, Listener {
+public class Identity extends JavaPlugin implements Listener {
     public static Identity instance;
 
     ArrayList<BukkitTask> tasks = new ArrayList<>();
@@ -32,9 +31,6 @@ public class Identity extends JavaPlugin implements CommandExecutor, Listener {
     public static final String identificator = " Identity-Plugin";
 
     public static Database database;
-
-
-
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -114,5 +110,4 @@ public class Identity extends JavaPlugin implements CommandExecutor, Listener {
 
         getLogger().info("Identity has been disabled!");
     }
-
 }

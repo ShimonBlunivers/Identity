@@ -14,5 +14,4 @@ public class Salesman extends JobType {
     public void work(Player player) {
 
     }
-
 }

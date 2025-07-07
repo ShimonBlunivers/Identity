@@ -103,7 +103,6 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
                     if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
                         player.getInventory().addItem(getCustomItem(customBlock.blockType));
                         player.sendMessage(identityStickString + ChatColor.WHITE + "Do inventáře ti byl přidán block "+ ChatColor.GREEN + customBlock.blockType.name);
-
                         return;
                     }
                     else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {

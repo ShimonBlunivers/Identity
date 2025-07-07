@@ -85,6 +85,7 @@ public class Database {
                 UNIQUE(player_id, medication_id)
                 );
             """);
+
             initializeTables(statement);
         }
     }

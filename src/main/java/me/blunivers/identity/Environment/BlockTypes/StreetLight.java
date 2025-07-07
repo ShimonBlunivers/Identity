@@ -56,4 +56,6 @@ public class StreetLight extends BlockType {
     public void interact(PlayerInteractEvent event, int x, int y, int z, String world) {
 
     }
+
+
 }

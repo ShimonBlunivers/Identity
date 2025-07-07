@@ -14,5 +14,4 @@ public class Policeman extends JobType {
     public void work(Player player) {
 
     }
-
 }

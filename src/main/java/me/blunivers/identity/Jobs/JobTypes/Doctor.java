@@ -14,5 +14,4 @@ public class Doctor extends JobType {
     public void work(Player player) {
 
     }
-
 }

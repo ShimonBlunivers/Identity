@@ -1,19 +1,20 @@
 package me.blunivers.identity.Jobs;
 
 
-import me.blunivers.identity.Identity;
-import me.blunivers.identity.Manager;
-import me.blunivers.identity.ScoreboardManager;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.reflections.Reflections;
 
+import me.blunivers.identity.Identity;
+import me.blunivers.identity.Manager;
+import me.blunivers.identity.ScoreboardManager;
+
 import java.util.ArrayList;
 import java.util.Set;
-
 
 public class JobManager extends Manager implements Listener {
     private final static JobManager instance = new JobManager();
@@ -22,7 +23,7 @@ public class JobManager extends Manager implements Listener {
 
     @Override
     public void load() {
-        Reflections reflections = new Reflections("me.blunivers.identity"); // Specify the package to scan
+        Reflections reflections = new Reflections("me.blunivers.identity");
         Set<Class<? extends JobType>> jobClasses = reflections.getSubTypesOf(JobType.class);
         for (Class<? extends JobType> jobClass : jobClasses) {
             try {
@@ -33,26 +34,26 @@ public class JobManager extends Manager implements Listener {
         }
     }
 
-
     @EventHandler
     public void injectSyringe(PlayerInteractAtEntityEvent event) {
+        // Not implemented
     }
 
     public static void employPlayer(Player player, JobType jobType) {
-
-
         ArrayList<JobType> playerJobTypes = Identity.database.jobs_getJobTypes(player);
         if (playerJobTypes.contains(jobType)) {
-            player.sendMessage(ChatColor.RED + "You are already employed as " + jobType.name + "!");
-        }
-        else if (playerJobTypes.size() >= jobLimit){
-            player.sendMessage(ChatColor.RED + "You are have already reached the max amount of jobs!");
-            player.sendMessage(ChatColor.RED + "Leave a job to join another one.");
-        }
-        else {
+            player.sendMessage(
+                Component.text("You are already employed as " + jobType.name + "!", NamedTextColor.RED)
+            );
+        } else if (playerJobTypes.size() >= jobLimit) {
+            player.sendMessage(Component.text("You have already reached the max amount of jobs!", NamedTextColor.RED));
+            player.sendMessage(Component.text("Leave a job to join another one.", NamedTextColor.RED));
+        } else {
             Identity.database.jobs_employPlayer(player, jobType);
             ScoreboardManager.getInstance().updateScoreboard(player);
-            player.sendMessage(ChatColor.GREEN + "You are now employed as " + jobType.name + "!");
+            player.sendMessage(
+                Component.text("You are now employed as " + jobType.name + "!", NamedTextColor.GREEN)
+            );
         }
     }
 
@@ -65,22 +66,25 @@ public class JobManager extends Manager implements Listener {
     }
 
     public static void leaveJob(Player player, JobType jobType) {
-
         ArrayList<JobType> playerJobTypes = Identity.database.jobs_getJobTypes(player);
 
-        if (playerJobTypes.contains(jobType)){
+        if (playerJobTypes.contains(jobType)) {
             Identity.database.jobs_leaveJob(player, jobType);
             ScoreboardManager.getInstance().updateScoreboard(player);
-            player.sendMessage(ChatColor.GREEN + "You've left the job " + jobType.name + "!");
-        }
-        else {
-            player.sendMessage(ChatColor.RED + "You already weren't " + jobType.name + "!");
+            player.sendMessage(
+                Component.text("You've left the job " + jobType.name + "!", NamedTextColor.GREEN)
+            );
+        } else {
+            player.sendMessage(
+                Component.text("You already weren't " + jobType.name + "!", NamedTextColor.RED)
+            );
         }
     }
 
     public static JobType getJob(String name) {
         return JobType.get(name);
     }
+
     public static JobManager getInstance() {
         return instance;
     }

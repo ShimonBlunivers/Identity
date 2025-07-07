@@ -18,16 +18,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class SecureDoor extends BlockType {
-    public SecureDoor() {
-        super("SecureDoor", Material.WARPED_DOOR);
+public class IllegalDoor extends BlockType {
+    public IllegalDoor() {
+        super("IllegalDoor", Material.CRIMSON_DOOR);
         offset = new Vector3i(0, 1, 0);
     }
 
     @Override
     public void update() {
-//        for (BlockInstance blockInstance : Identity.database.environment_getCustomBlockInstances(this, "world")){
-//        }
     }
 
     @Override
@@ -35,7 +33,7 @@ public class SecureDoor extends BlockType {
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) return;
         BlockInstance blockInstance = Identity.database.environment_getCustomBlockInstance(x, y, z, world);
         if (blockInstance == null) return;
-//        if (event.getPlayer().isOp()) return;
+        if (event.getPlayer().isOp()) return;
         if (blockInstance.metadata.isEmpty()){
             event.setCancelled(true);
             return;

@@ -36,4 +36,7 @@ public abstract class BlockType {
     public BlockInstance place(Player player, int x, int y, int z, String world){
         return Identity.database.environment_placeCustomBlock(x + offset.x, y + offset.y,  z + offset.z, this, world);
     }
+    public boolean verifyMetadata(String metadata){
+        return true;
+    }
 }
