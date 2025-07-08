@@ -72,14 +72,18 @@ public class IllegalDoor extends BlockType {
 
     @Override
     public boolean verifyMetadata(String metadata) {
-        if (metadata.isEmpty()) return true;
-        for (String line : metadata.split(",")){
+        if (metadata.isEmpty()) {
+            return true;
+        }
+        for (String line : metadata.split(",")) {
             String[] entry = line.split(":");
-            if (entry.length == 2){
-                if (!JobType.getJobs().containsKey(entry[0])) return false;
-                if (!isNumeric(entry[1])) return false;
+            if (entry.length != 2) {
+                return false;
             }
-            else {
+            if (!JobType.getJobs().containsKey(entry[0])) {
+                return false;
+            }
+            if (!isNumeric(entry[1])) {
                 return false;
             }
         }

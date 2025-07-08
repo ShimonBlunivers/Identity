@@ -4,7 +4,6 @@ import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Items.ItemManager;
 import me.blunivers.identity.Jobs.JobManager;
-import me.blunivers.identity.Menus.BlockMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -19,7 +18,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class Identity extends JavaPlugin implements Listener {
-    public static Identity instance;
+
+    public static Identity singleton;
 
     ArrayList<BukkitTask> tasks = new ArrayList<>();
 
@@ -45,15 +45,14 @@ public class Identity extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-
-        instance = this;
-        namespacedKey = new NamespacedKey(instance, "identity-plugin");
+        singleton = this;
+        namespacedKey = new NamespacedKey(singleton, "identity-plugin");
 
         saveDefaultConfig(); // CHANGE TO saveConfig();
 
         CommandManager commandManager = new CommandManager();
 
-        HealthManager.getInstance().load();
+        HealthManager.getSingleton().load();
 
         try {
             database = new Database(getDataFolder().getAbsolutePath() + "/identity.sqlite.db");
@@ -61,21 +60,17 @@ public class Identity extends JavaPlugin implements Listener {
             System.out.println("Failed to connect to the database! " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);
         }
-
-        getCommand("jobs").setExecutor(commandManager);
-        getCommand("refreshidentityscoreboard").setExecutor(commandManager);
+                
+        getCommand("test").setExecutor(commandManager);
         getCommand("idstick").setExecutor(commandManager);
-        getCommand("infect").setExecutor(commandManager);
-        getCommand("syringe").setExecutor(commandManager);
-        getCommand("cure").setExecutor(commandManager);
+        getCommand("environment").setExecutor(commandManager);
+        getCommand("jobs").setExecutor(commandManager);
+        getCommand("health").setExecutor(commandManager);
 
-        getCommand("idblocklist").setExecutor(new BlockMenu());
-
-        getServer().getPluginManager().registerEvents(JobManager.getInstance(), this);
-        getServer().getPluginManager().registerEvents(EnvironmentManager.getInstance(), this);
-        getServer().getPluginManager().registerEvents(HealthManager.getInstance(), this);
-        getServer().getPluginManager().registerEvents(ItemManager.getInstance(), this);
-        getServer().getPluginManager().registerEvents(HealthManager.getInstance(), this);
+        getServer().getPluginManager().registerEvents(JobManager.getSingleton(), this);
+        getServer().getPluginManager().registerEvents(EnvironmentManager.getSingleton(), this);
+        getServer().getPluginManager().registerEvents(HealthManager.getSingleton(), this);
+        getServer().getPluginManager().registerEvents(ItemManager.getSingleton(), this);
         getServer().getPluginManager().registerEvents(this, this);
 
         database.players_reset();
@@ -83,15 +78,15 @@ public class Identity extends JavaPlugin implements Listener {
             database.players_join(player);
         }
 
-        JobManager.getInstance().load();
-        EnvironmentManager.getInstance().load();
-        ItemManager.getInstance().load();
+        JobManager.getSingleton().load();
+        EnvironmentManager.getSingleton().load();
+        ItemManager.getSingleton().load();
         ScoreboardManager.getInstance().load();
 
         ScoreboardManager.getInstance().updateEverything();
 
-        tasks.add(getServer().getScheduler().runTaskTimer(this, EnvironmentManager.getInstance(), 0, 200));
-        tasks.add(getServer().getScheduler().runTaskTimer(this, HealthManager.getInstance(), 0, healthManagerTimer));
+        tasks.add(getServer().getScheduler().runTaskTimer(this, EnvironmentManager.getSingleton(), 0, 200));
+        tasks.add(getServer().getScheduler().runTaskTimer(this, HealthManager.getSingleton(), 0, healthManagerTimer));
 
         getLogger().info("Identity has been enabled!");
     }

@@ -1,18 +1,18 @@
 package me.blunivers.identity.Health.Conditions;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.ArrayList;
 
 public enum ConditionStatus {
-    UNTREATED(ChatColor.RED),
-    LETHAL(ChatColor.DARK_RED),
-    MEDICATED(ChatColor.DARK_GREEN);
+    UNTREATED(NamedTextColor.RED),
+    LETHAL(NamedTextColor.DARK_RED),
+    MEDICATED(NamedTextColor.DARK_GREEN);
 
     public static final int maximalStage = 100;
-    private final ChatColor color;
+    private final NamedTextColor color;
 
-    ConditionStatus(ChatColor _color) {
+    ConditionStatus(NamedTextColor _color) {
         color = _color;
     }
 

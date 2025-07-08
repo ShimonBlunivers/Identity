@@ -5,18 +5,32 @@ api-version: '1.21'
 author: ShimonBlunivers
 
 commands:
+  test:
+    description: "Testing command"
+
   idstick:
-    description: Gives you the Identity Stick
-  idblocklist:
-    description: Opens enviromental block selector menu
+    description: "Gives you the Identity Stick"
+    usage: /idstick
+
+  environment:
+    description: "Command managing the environment"
+    usage: |
+      /environment blocklist
+
   jobs:
-    description: Command managing jobs
-    usage: /jobs [browse | info | join | progress | leave]
-  refreshidentityscoreboard:
-    description: Refreshes all scoreboards
-  infect:
-    description: Infects player
-  syringe:
-    description: Gives player syringe
-  cure:
-    description: Cures the player
+    description: "Command managing the jobs"
+    usage: |
+      /jobs list
+      /jobs info <job>
+      /jobs join <job> [player]
+      /jobs progress <job> [player]
+      /jobs leave <job> [player]
+
+  health:
+    description: "Command managing the health"
+    usage: |
+      /health infect <player>
+      /health cure <player>
+      /health syringe <player>
+      
+      

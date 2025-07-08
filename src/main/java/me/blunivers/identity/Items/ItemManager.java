@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class ItemManager extends Manager implements Listener {
 
-    private final static ItemManager instance = new ItemManager();
+    private final static ItemManager singleton = new ItemManager();
     public static ArrayList<CustomItem> customItems = new ArrayList<>();
 
     public static Syringe syringe = new Syringe();
@@ -43,8 +43,8 @@ public class ItemManager extends Manager implements Listener {
         }
     }
 
-    public static ItemManager getInstance() {
-        return instance;
+    public static ItemManager getSingleton() {
+        return singleton;
     }
 
     @Override

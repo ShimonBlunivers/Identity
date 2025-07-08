@@ -24,6 +24,7 @@ public abstract class BlockType {
     }
 
     public abstract void update();
+
     public abstract void interact(PlayerInteractEvent event, int x, int y, int z, String world);
 
     public static BlockType get(String blockName) {

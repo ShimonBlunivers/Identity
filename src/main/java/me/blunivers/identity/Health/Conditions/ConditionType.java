@@ -1,8 +1,6 @@
 package me.blunivers.identity.Health.Conditions;
 
 import me.blunivers.identity.DataItem;
-import me.blunivers.identity.Health.HealthManager;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;

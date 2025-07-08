@@ -2,11 +2,9 @@ package me.blunivers.identity.Health.Conditions;
 
 import me.blunivers.identity.Health.Conditions.Illnesses.Illness;
 
-import java.util.Random;
-
 public class ConditionInstance {
 
-    private int id;
+    public int id;
     public ConditionType conditionType;
     public String playerID;
     public int stage;

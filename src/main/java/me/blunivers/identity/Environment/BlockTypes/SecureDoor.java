@@ -17,7 +17,6 @@ import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 public class SecureDoor extends BlockType {
     public SecureDoor() {
         super("SecureDoor", Material.WARPED_DOOR);
@@ -26,36 +25,39 @@ public class SecureDoor extends BlockType {
 
     @Override
     public void update() {
-//        for (BlockInstance blockInstance : Identity.database.environment_getCustomBlockInstances(this, "world")){
-//        }
+        // for (BlockInstance blockInstance :
+        // Identity.database.environment_getCustomBlockInstances(this, "world")){
+        // }
     }
 
     @Override
     public void interact(PlayerInteractEvent event, int x, int y, int z, String world) {
-        if (event.getAction() == Action.LEFT_CLICK_BLOCK) return;
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK)
+            return;
         BlockInstance blockInstance = Identity.database.environment_getCustomBlockInstance(x, y, z, world);
-        if (blockInstance == null) return;
-//        if (event.getPlayer().isOp()) return;
-        if (blockInstance.metadata.isEmpty()){
+        if (blockInstance == null)
+            return;
+        // if (event.getPlayer().isOp()) return;
+        if (blockInstance.metadata.isEmpty()) {
             event.setCancelled(true);
             return;
         }
         ArrayList<JobInstance> playerJobs = Identity.database.jobs_getJobInstances(event.getPlayer());
         ArrayList<JobType> playerJobTypes = new ArrayList<>();
 
-        for (JobInstance playerJob : playerJobs) playerJobTypes.add(playerJob.jobType);
+        for (JobInstance playerJob : playerJobs)
+            playerJobTypes.add(playerJob.jobType);
 
         HashMap<JobType, Integer> metadata = convertMetadata(blockInstance.metadata);
 
-        for (JobType jobType : metadata.keySet()){
-            if (!playerJobTypes.contains(jobType)){
+        for (JobType jobType : metadata.keySet()) {
+            if (!playerJobTypes.contains(jobType)) {
                 event.setCancelled(true);
                 return;
-            }
-            else {
-                for (JobInstance jobInstance : playerJobs){
-                    if (jobInstance.jobType == jobType){
-                        if (jobInstance.level < metadata.get(jobType)){
+            } else {
+                for (JobInstance jobInstance : playerJobs) {
+                    if (jobInstance.jobType == jobType) {
+                        if (jobInstance.level < metadata.get(jobType)) {
                             event.setCancelled(true);
                             return;
                         }
@@ -74,14 +76,18 @@ public class SecureDoor extends BlockType {
 
     @Override
     public boolean verifyMetadata(String metadata) {
-        if (metadata.isEmpty()) return true;
-        for (String line : metadata.split(",")){
+        if (metadata.isEmpty()) {
+            return true;
+        }
+        for (String line : metadata.split(",")) {
             String[] entry = line.split(":");
-            if (entry.length == 2){
-                if (!JobType.getJobs().containsKey(entry[0])) return false;
-                if (!isNumeric(entry[1])) return false;
+            if (entry.length != 2) {
+                return false;
             }
-            else {
+            if (!JobType.getJobs().containsKey(entry[0])) {
+                return false;
+            }
+            if (!isNumeric(entry[1])) {
                 return false;
             }
         }
@@ -90,9 +96,10 @@ public class SecureDoor extends BlockType {
 
     public HashMap<JobType, Integer> convertMetadata(String metadata) {
         HashMap<JobType, Integer> result = new HashMap<>();
-        for (String line : metadata.split(",")){
+        for (String line : metadata.split(",")) {
             String[] entry = line.split(":");
-            if (entry.length == 2) result.put(JobType.get(entry[0]), Integer.parseInt(entry[1]));
+            if (entry.length == 2)
+                result.put(JobType.get(entry[0]), Integer.parseInt(entry[1]));
         }
         return result;
     }

@@ -3,7 +3,7 @@ package me.blunivers.identity.Health.Conditions;
 
 public class MedicationInstance {
 
-    private int id;
+    public int id;
     public MedicationType medicationType;
     public String playerID;
     public int timeBeforeExpiration;

@@ -3,9 +3,12 @@ package me.blunivers.identity.Environment;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import me.blunivers.identity.Identity;
 import me.blunivers.identity.Manager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import me.blunivers.identity.Utility;
+
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,18 +19,14 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.joml.Vector3i;
 import org.reflections.Reflections;
 
-import java.nio.channels.WritePendingException;
 import java.util.Set;
 
-
 public class EnvironmentManager extends Manager implements Runnable, Listener {
-    private final static EnvironmentManager instance = new EnvironmentManager();
+    private final static EnvironmentManager singleton = new EnvironmentManager();
 
     protected static String path = "";
-
 
     @Override
     public void load() {
@@ -44,24 +43,25 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
         updateBlockInstances();
     }
 
-
     public boolean isDay() {
         long time = Bukkit.getWorld("world").getTime();
         return time > 0 && time < 12300;
     }
-    public static EnvironmentManager getInstance() {
-        return instance;
+
+    public static EnvironmentManager getSingleton() {
+        return singleton;
     }
 
     public static void givePlayerIdentityStick(Player player) {
         ItemStack item = new ItemStack(Material.STICK, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("IdentityStick" + Identity.identificator);
+        meta.displayName(Component.text("IdentityStick" + Identity.identificator));
         item.setItemMeta(meta);
         player.getInventory().addItem(item);
 
-        player.sendMessage(ChatColor.GREEN + "Byla ti darována mocná tyčka identit!");
+        player.sendMessage(Component.text("Byla ti darována mocná tyčka identit!", NamedTextColor.GREEN));
     }
+
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
         if (!event.getPlayer().isOp()) {
@@ -69,20 +69,25 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
             return;
         }
         Block block = event.getBlock();
-        Identity.database.environment_removeCustomBlock(block.getX(), block.getY(), block.getZ(), block.getWorld().getName());
+        Identity.database.environment_removeCustomBlock(block.getX(), block.getY(), block.getZ(),
+                block.getWorld().getName());
     }
+
     @EventHandler
     public void onDestroy(BlockDestroyEvent event) {
         Block block = event.getBlock();
-        Identity.database.environment_removeCustomBlock(block.getX(), block.getY(), block.getZ(), block.getWorld().getName());
+        Identity.database.environment_removeCustomBlock(block.getX(), block.getY(), block.getZ(),
+                block.getWorld().getName());
     }
 
     @EventHandler
-    public void useIdentityStick(PlayerInteractEvent event){
-        if (event.getItem() == null || event.getClickedBlock() == null || !event.getPlayer().isOp()) return;
+    public void useIdentityStick(PlayerInteractEvent event) {
+        if (event.getItem() == null || event.getClickedBlock() == null || !event.getPlayer().isOp())
+            return;
 
         ItemStack itemStack = event.getItem();
-        if (itemStack.getType().equals(Material.STICK) && itemStack.getItemMeta().getDisplayName().equals("IdentityStick" + Identity.identificator)){
+        if (itemStack.getType().equals(Material.STICK)
+                && Utility.componentToString(itemStack.getItemMeta().displayName()).equals("IdentityStick" + Identity.identificator)) {
             Player player = event.getPlayer();
             Block block = event.getClickedBlock();
 
@@ -92,7 +97,7 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
             int y = block.getY();
             int z = block.getZ();
 
-            String identityStickString = ChatColor.LIGHT_PURPLE + "<IdentityStick> ";
+            String identityStickString = "<IdentityStick> ";
 
             for (BlockInstance customBlock : Identity.database.environment_getCustomBlockInstances()) {
                 int X = customBlock.position.x;
@@ -102,59 +107,68 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
                 if (x == X && y == Y && Z == z) {
                     if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
                         player.getInventory().addItem(getCustomItem(customBlock.blockType));
-                        player.sendMessage(identityStickString + ChatColor.WHITE + "Do inventáře ti byl přidán block "+ ChatColor.GREEN + customBlock.blockType.name);
+                        player.sendMessage(Component.text(identityStickString, NamedTextColor.LIGHT_PURPLE)
+                                .append(Component.text("Do inventáře ti byl přidán block", NamedTextColor.WHITE))
+                                .append(Component.text(" " + customBlock.blockType.name, NamedTextColor.GREEN)));
+
                         return;
-                    }
-                    else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                        player.sendMessage(identityStickString + ChatColor.GREEN + customBlock.blockType.name);
+                    } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                        player.sendMessage(Component.text(identityStickString, NamedTextColor.LIGHT_PURPLE)
+                                .append(Component.text(customBlock.blockType.name, NamedTextColor.GREEN)));
                         return;
                     }
                 }
             }
-            player.sendMessage(identityStickString + ChatColor.RED + "Vanilla block");
+            player.sendMessage(
+                    Component.text(identityStickString, NamedTextColor.LIGHT_PURPLE)
+                            .append(Component.text("Vanilla block", NamedTextColor.RED)));
         }
     }
 
     @EventHandler
-    public void invisibleItemFrameProtection(PlayerInteractEntityEvent event){
+    public void invisibleItemFrameProtection(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
         if (entity.getType() == EntityType.ITEM_FRAME) {
             ItemFrame itemFrame = (ItemFrame) entity;
             if (!itemFrame.isVisible())
-                if (!itemFrame.getItem().equals(new ItemStack(Material.AIR, 1))) event.setCancelled(true);
+                if (!itemFrame.getItem().equals(new ItemStack(Material.AIR, 1)))
+                    event.setCancelled(true);
         }
     }
 
-
     @EventHandler
     public void onPlace(BlockPlaceEvent event) {
-        if (!event.getPlayer().isOp()) return;
+        if (!event.getPlayer().isOp())
+            return;
         ItemMeta meta = event.getItemInHand().getItemMeta();
         Block block = event.getBlock();
 
-        if (meta.getDisplayName().contains(Identity.identificator)) {
-            BlockType blockType = BlockType.get(meta.getDisplayName().replace(Identity.identificator, ""));
-            if (blockType != null){
+        if (Utility.componentToString(meta.displayName()).contains(Identity.identificator)) {
+            BlockType blockType = BlockType.get(Utility.componentToString(meta.displayName()).replace(Identity.identificator, ""));
+            if (blockType != null) {
                 if (!event.getPlayer().isOp()) {
                     event.setCancelled(true);
                     return;
                 }
-                blockType.place(event.getPlayer(), block.getX(), block.getY(), block.getZ(), block.getWorld().getName());
+                blockType.place(event.getPlayer(), block.getX(), block.getY(), block.getZ(),
+                        block.getWorld().getName());
             }
         }
 
     }
-    public static ItemStack getCustomItem(BlockType blockType){
+
+    public static ItemStack getCustomItem(BlockType blockType) {
         ItemStack item = new ItemStack(blockType.material, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(blockType.name + Identity.identificator);
+        meta.displayName(Component.text(blockType.name + Identity.identificator));
         item.setItemMeta(meta);
         return item;
     }
-    public static ItemStack getCustomItemWithoutLabel(BlockType blockType){
+
+    public static ItemStack getCustomItemWithoutLabel(BlockType blockType) {
         ItemStack item = new ItemStack(blockType.material, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(blockType.name);
+        meta.displayName(Component.text(blockType.name));
         item.setItemMeta(meta);
         return item;
     }
@@ -165,20 +179,24 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
     }
 
     public void updateBlockInstances() {
-        for (BlockType blockType : BlockType.get().values()){
+        for (BlockType blockType : BlockType.get().values()) {
             blockType.update();
         }
     }
+
     @EventHandler
-    public void onInteract(PlayerInteractEvent event){
-        for (BlockType blockType : BlockType.get().values()){
-            Block block  = event.getClickedBlock();
-            if (block != null && block.getType() == blockType.material){
+    public void onInteract(PlayerInteractEvent event) {
+        for (BlockType blockType : BlockType.get().values()) {
+            Block block = event.getClickedBlock();
+            if (block != null && block.getType() == blockType.material) {
                 blockType.interact(event, block.getX(), block.getY(), block.getZ(), block.getWorld().getName());
-                if (!(blockType.offset.x == 0 && blockType.offset.y == 0 && blockType.offset.z == 0)){
-                    Block block_offsetted = event.getPlayer().getWorld().getBlockAt(new Location(event.getPlayer().getWorld(), block.getX() + blockType.offset.x, block.getY() + blockType.offset.y, block.getZ() + blockType.offset.z));
-                    if (block_offsetted != null){
-                        blockType.interact(event, block_offsetted.getX(), block_offsetted.getY(), block_offsetted.getZ(), block_offsetted.getWorld().getName());
+                if (!(blockType.offset.x == 0 && blockType.offset.y == 0 && blockType.offset.z == 0)) {
+                    Block block_offsetted = event.getPlayer().getWorld()
+                            .getBlockAt(new Location(event.getPlayer().getWorld(), block.getX() + blockType.offset.x,
+                                    block.getY() + blockType.offset.y, block.getZ() + blockType.offset.z));
+                    if (block_offsetted != null) {
+                        blockType.interact(event, block_offsetted.getX(), block_offsetted.getY(),
+                                block_offsetted.getZ(), block_offsetted.getWorld().getName());
                     }
                 }
             }

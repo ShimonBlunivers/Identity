@@ -1,8 +1,6 @@
 package me.blunivers.identity.Health.Conditions;
 
 import me.blunivers.identity.DataItem;
-import me.blunivers.identity.Health.Conditions.Illnesses.Illness;
-import me.blunivers.identity.Health.HealthManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;

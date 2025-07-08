@@ -409,7 +409,7 @@ public class Database {
     }
 
     public void health_healConditions(){
-        ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
+        // ArrayList<ConditionInstance> conditionInstances = new ArrayList<>();
         String statement = "DELETE FROM health_condition_instances WHERE stage <= 0";
         try (PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
             preparedStatement.executeUpdate();

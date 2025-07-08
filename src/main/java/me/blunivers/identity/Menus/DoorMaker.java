@@ -21,7 +21,7 @@ import java.util.StringJoiner;
 import static org.bukkit.Bukkit.getServer;
 
 public class DoorMaker implements Listener {
-    private final String menuName = "Výběr Identity Bloků";
+    // private final String menuName = "Výběr Identity Bloků";
 
     Player player;
     BlockInstance blockInstance;
@@ -43,12 +43,12 @@ public class DoorMaker implements Listener {
     public DoorMaker(Player player, BlockInstance blockInstance) {
         this.player = player;
         this.blockInstance = blockInstance;
-        getServer().getPluginManager().registerEvents(this, Identity.instance);
+        getServer().getPluginManager().registerEvents(this, Identity.singleton);
 
         Block block = player.getWorld().getBlockAt(player.getLocation());
 
         Block freeBlockFinder = block;
-        for (int i = 0; i < 42; i++) {
+        for (int i = 0; i < 42; i++) { // I guess it works..?
             if (freeBlockFinder.getType() == Material.AIR)
                 break;
             if (i <= 14) {
@@ -72,14 +72,14 @@ public class DoorMaker implements Listener {
         if (blockInstance.blockType.verifyMetadata(metadata)) {
             Identity.database.environment_addMetadataToBlock(blockInstance.x, blockInstance.y, blockInstance.z,
                     blockInstance.world.getName(), metadata);
-        } else {
-            Identity.database.environment_removeCustomBlock(blockInstance.x, blockInstance.y, blockInstance.z,
-                    blockInstance.world.getName());
-            blockInstance.block.setType(Material.AIR, false);
-            blockInstance.offsetted_block.setType(Material.AIR);
-            player.sendMessage(Component.text(
-                    "Neplatný zápis práv, práva napište na cedulku jeden zápis na jeden řádek ve formátu -> JménoProfese:PotřebnýLevelVProfesi")
-                    .color(NamedTextColor.RED));
+            return;
         }
+        Identity.database.environment_removeCustomBlock(blockInstance.x, blockInstance.y, blockInstance.z,
+                blockInstance.world.getName());
+        blockInstance.block.setType(Material.AIR, false);
+        blockInstance.offsetted_block.setType(Material.AIR);
+        player.sendMessage(Component.text(
+                "Invalid format of permissions. The following format should be used -> JobName:RequiredLevel")
+                .color(NamedTextColor.RED));
     }
 }

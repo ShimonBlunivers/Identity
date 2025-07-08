@@ -2,7 +2,6 @@ package me.blunivers.identity.Environment.BlockTypes;
 
 import me.blunivers.identity.Environment.BlockInstance;
 import me.blunivers.identity.Environment.BlockType;
-import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Identity;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

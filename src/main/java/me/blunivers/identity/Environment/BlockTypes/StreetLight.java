@@ -18,7 +18,7 @@ public class StreetLight extends BlockType {
 
     public StreetLight() {
         super("StreetLight", Material.REDSTONE_LAMP);
-        daylight = EnvironmentManager.getInstance().isDay();
+        daylight = EnvironmentManager.getSingleton().isDay();
     }
 
 
@@ -26,8 +26,8 @@ public class StreetLight extends BlockType {
 
     @Override
     public void update() {
-        if (daylight != EnvironmentManager.getInstance().isDay()) {
-            daylight = EnvironmentManager.getInstance().isDay();
+        if (daylight != EnvironmentManager.getSingleton().isDay()) {
+            daylight = EnvironmentManager.getSingleton().isDay();
             for (BlockInstance customBlock : Identity.database.environment_getCustomBlockInstances(this, "world")) {
 
                 int x = customBlock.position.x;
