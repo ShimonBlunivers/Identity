@@ -5,19 +5,18 @@ api-version: '1.21'
 author: ShimonBlunivers
 
 commands:
-  identities:
-    description: Command managing identities
-    aliases:
-      - ids
-  idboard:
-    description: Refreshes all scoreboards
   idstick:
     description: Gives you the Identity Stick
+  idblocklist:
+    description: Opens enviromental block selector menu
+  jobs:
+    description: Command managing jobs
+    usage: /jobs [browse | info | join | progress | leave]
+  refreshidentityscoreboard:
+    description: Refreshes all scoreboards
   infect:
     description: Infects player
   syringe:
     description: Gives player syringe
   cure:
     description: Cures the player
-  idblocks:
-    description: Opens enviromental block selector menu

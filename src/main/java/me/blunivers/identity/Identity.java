@@ -1,6 +1,5 @@
 package me.blunivers.identity;
 
-
 import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Health.HealthManager;
 import me.blunivers.identity.Items.ItemManager;
@@ -37,11 +36,13 @@ public class Identity extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         database.players_join(player);
     }
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         database.players_leave(player);
     }
+
     @Override
     public void onEnable() {
 
@@ -50,25 +51,25 @@ public class Identity extends JavaPlugin implements Listener {
 
         saveDefaultConfig(); // CHANGE TO saveConfig();
 
-        Commands commands = new Commands();
+        CommandManager commandManager = new CommandManager();
 
         HealthManager.getInstance().load();
 
         try {
             database = new Database(getDataFolder().getAbsolutePath() + "/identity.sqlite.db");
-        }catch (SQLException e){
+        } catch (SQLException e) {
             System.out.println("Failed to connect to the database! " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
-        getCommand("identities").setExecutor(commands);
-        getCommand("idboard").setExecutor(commands);
-        getCommand("idstick").setExecutor(commands);
-        getCommand("infect").setExecutor(commands);
-        getCommand("syringe").setExecutor(commands);
-        getCommand("cure").setExecutor(commands);
+        getCommand("jobs").setExecutor(commandManager);
+        getCommand("refreshidentityscoreboard").setExecutor(commandManager);
+        getCommand("idstick").setExecutor(commandManager);
+        getCommand("infect").setExecutor(commandManager);
+        getCommand("syringe").setExecutor(commandManager);
+        getCommand("cure").setExecutor(commandManager);
 
-        getCommand("idblocks").setExecutor(new BlockMenu());
+        getCommand("idblocklist").setExecutor(new BlockMenu());
 
         getServer().getPluginManager().registerEvents(JobManager.getInstance(), this);
         getServer().getPluginManager().registerEvents(EnvironmentManager.getInstance(), this);
@@ -92,19 +93,17 @@ public class Identity extends JavaPlugin implements Listener {
         tasks.add(getServer().getScheduler().runTaskTimer(this, EnvironmentManager.getInstance(), 0, 200));
         tasks.add(getServer().getScheduler().runTaskTimer(this, HealthManager.getInstance(), 0, healthManagerTimer));
 
-
-
         getLogger().info("Identity has been enabled!");
     }
 
     @Override
     public void onDisable() {
-
-        for (BukkitTask task : tasks) if (task != null && !task.isCancelled()) task.cancel();
-
-        try{
+        for (BukkitTask task : tasks)
+            if (task != null && !task.isCancelled())
+                task.cancel();
+        try {
             database.closeConnection();
-        }catch (SQLException e){
+        } catch (SQLException e) {
             System.out.println("Failed to execute onDisable! " + e.getMessage());
         }
 

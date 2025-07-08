@@ -16,12 +16,12 @@ import org.bukkit.entity.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-public class Commands implements CommandExecutor {
+public class CommandManager implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
-            if (label.equalsIgnoreCase("identities") || label.equalsIgnoreCase("ids")) {
+            if (label.equalsIgnoreCase("jobs")) {
                 if (args.length > 0 && args.length < 4) {
 
                     JobType targetJobType = null;
@@ -40,7 +40,7 @@ public class Commands implements CommandExecutor {
                     return false;
                 }
 
-            } else if (label.equalsIgnoreCase("idboard")) {
+            } else if (label.equalsIgnoreCase("refreshidentityscoreboard")) {
                 // EnvironmentManager.givePlayerCustomBlock(player, EnvironmentManager.CustomBlockID.CanalLid, Material.IRON_TRAPDOOR);
 
             } else if (label.equalsIgnoreCase("idstick")) {
@@ -64,7 +64,7 @@ public class Commands implements CommandExecutor {
         return false;
     }
 
-    private boolean processCommand(String command, Player sender, Player targetPlayer, JobType targetJobType) {
+    boolean processCommand(String command, Player sender, Player targetPlayer, JobType targetJobType) {
         if (!command.equals("browse") && targetPlayer == null) targetPlayer = sender;
 
         switch (command) {
