@@ -13,8 +13,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 
 public class ItemManager extends Manager implements Listener {
+    public static final ItemManager singleton = new ItemManager();
 
-    private final static ItemManager singleton = new ItemManager();
     public static ArrayList<CustomItem> customItems = new ArrayList<>();
 
     public static Syringe syringe = new Syringe();
@@ -25,26 +25,25 @@ public class ItemManager extends Manager implements Listener {
     @EventHandler
     public void useCustomItem(PlayerInteractAtEntityEvent event) {
         ItemStack item = event.getPlayer().getInventory().getItem(event.getPlayer().getInventory().getHeldItemSlot());
-        if (item != null) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null)
-                return;
+        if (item == null) {
+            return;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return;
+        }
 
-            Component displayName = meta.displayName();
-            if (displayName == null)
-                return;
+        Component displayName = meta.displayName();
+        if (displayName == null) {
+            return;
+        }
 
-            Material itemMaterial = item.getType();
-            for (CustomItem customItem : customItems) {
-                if (displayName.equals(customItem.displayName) && itemMaterial == customItem.material) {
-                    customItem.useItem(event);
-                }
+        Material itemMaterial = item.getType();
+        for (CustomItem customItem : customItems) {
+            if (displayName.equals(Component.text(customItem.displayName)) && itemMaterial == customItem.material) {
+                customItem.useItem(event);
             }
         }
-    }
-
-    public static ItemManager getSingleton() {
-        return singleton;
     }
 
     @Override

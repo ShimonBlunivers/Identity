@@ -112,26 +112,27 @@ public class Syringe extends CustomItem {
         List<Component> lore = meta.lore();
         String title = "";
 
-        if (lore != null) {
-            for (Component lineComponent : lore) {
-                String plainLine = PlainTextComponentSerializer.plainText().serialize(lineComponent);
+        if (lore == null) {
+            return;
+        }
+        for (Component lineComponent : lore) {
+            String plainLine = PlainTextComponentSerializer.plainText().serialize(lineComponent);
 
-                if (plainLine.contains(ItemManager.listTitleMark)) {
-                    title = plainLine;
-                } else {
-                    String listItem = plainLine.replace(ItemManager.listItemMark, "");
-                    sender.sendMessage(Component.text(listItem));
+            if (plainLine.contains(ItemManager.listTitleMark)) {
+                title = plainLine;
+                break;
+            }
+            String listItem = plainLine.replace(ItemManager.listItemMark, "");
+            sender.sendMessage(Component.text(listItem));
 
-                    if (title.contains("Očkování")) {
-                        HealthManager.addMedicationToPlayer(target, MedicationType.get(listItem));
-                        target.sendMessage(Component.text("1"));
-                    }
+            if (title.contains("Očkování")) {
+                HealthManager.addMedicationToPlayer(target, MedicationType.get(listItem));
+                target.sendMessage(Component.text("1"));
+            }
 
-                    if (title.contains("Nemoci")) {
-                        HealthManager.addConditionToPlayer(target, ConditionType.get(listItem));
-                        target.sendMessage(Component.text("2"));
-                    }
-                }
+            if (title.contains("Nemoci")) {
+                HealthManager.addConditionToPlayer(target, ConditionType.get(listItem));
+                target.sendMessage(Component.text("2"));
             }
         }
     }

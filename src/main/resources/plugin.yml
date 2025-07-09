@@ -16,6 +16,9 @@ commands:
     description: "Command managing the environment"
     usage: |
       /environment blocklist
+      /environment door info
+      /environment door remove <job>
+      /environment door add <job> <required-level>
 
   jobs:
     description: "Command managing the jobs"

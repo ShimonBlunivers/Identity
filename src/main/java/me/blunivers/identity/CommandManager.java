@@ -1,5 +1,6 @@
 package me.blunivers.identity;
 
+import me.blunivers.identity.Environment.BlockInstance;
 import me.blunivers.identity.Environment.EnvironmentManager;
 import me.blunivers.identity.Health.Conditions.ConditionType;
 import me.blunivers.identity.Health.Conditions.MedicationType;
@@ -34,10 +35,13 @@ public class CommandManager implements CommandExecutor {
         String subLabel;
         label = label.toLowerCase();
         switch (label) {
-            case "idstick":
+            case "test": // /test
+                testCommand();
+                return true;
+            case "idstick": // /idstick
                 EnvironmentManager.givePlayerIdentityStick(player);
                 return true;
-            case "jobs":
+            case "jobs": // /jobs
                 if (args.length == 0 || args.length > 3) { // If args.length is between 1 and 3
                     return false;
                 }
@@ -61,11 +65,11 @@ public class CommandManager implements CommandExecutor {
 
                 subLabel = args[0].toLowerCase();
                 switch (subLabel) {
-                    case "list":
+                    case "list": // /jobs list
                         jobsBrowseCommand(sender);
                         return true;
 
-                    case "info":
+                    case "info": // /jobs info
 
                         if (targetJobType == null) {
                             sender.sendMessage(Component.text("The '/jobs info <job>' command requires a job argument!",
@@ -75,7 +79,7 @@ public class CommandManager implements CommandExecutor {
                         jobsInfoCommand(sender, targetPlayer);
                         return true;
 
-                    case "join":
+                    case "join": // /jobs join
                         if (targetJobType == null) {
                             sender.sendMessage(Component.text("The '/jobs join <job>' command requires a job argument!",
                                     NamedTextColor.RED));
@@ -84,7 +88,7 @@ public class CommandManager implements CommandExecutor {
                         jobsJoinCommand(sender, targetPlayer, targetJobType);
                         return true;
 
-                    case "progress":
+                    case "progress": // /jobs progress
                         if (targetJobType == null) {
                             sender.sendMessage(
                                     Component.text("The '/jobs progress <job>' command requires a job argument!",
@@ -94,7 +98,7 @@ public class CommandManager implements CommandExecutor {
                         jobsProgressCommand(sender, targetPlayer, targetJobType);
                         return true;
 
-                    case "leave":
+                    case "leave": // /jobs leave
                         if (targetJobType == null) {
                             sender.sendMessage(
                                     Component.text("The '/jobs leave <job>' command requires a job argument!",
@@ -103,28 +107,39 @@ public class CommandManager implements CommandExecutor {
                         }
                         jobsLeaveCommand(sender, targetPlayer, targetJobType);
                         return true;
-
-                    default:
-                        sender.sendMessage(Component.text("Invalid '/jobs <command>' option!", NamedTextColor.RED));
-                        return false;
                 }
 
-            case "test":
-                testCommand();
-                return true;
-
-            case "environment":
-                if (args.length != 1) {
+            case "environment": // /environment
+                if (args.length == 0 || args.length > 4) {
                     return false;
                 }
                 subLabel = args[0].toLowerCase();
                 switch (subLabel) {
-                    case "blocklist":
+                    case "blocklist": // /environment blocklist
                         BlockMenu.singleton.open(sender);
                         return true;
+                    case "door": // /environment door
+                        if (args.length < 2) {
+                            return false;
+                        }
+                        subLabel = args[1].toLowerCase();
+                        switch (subLabel) {
+                            case "info": // /environment door info
+                                return true;
+                            case "remove": // /environment door remove
+                                if (args.length < 4) {
+                                    return false;
+                                }
+                                return true;
+                            case "add": // /environment door add
+                                if (args.length < 4) {
+                                    return false;
+                                }
+                                return true;
+                        }
                 }
 
-            case "health":
+            case "health": // /health
                 if (args.length == 0 || args.length > 2) { // If args.length is between 1 and 3
                     return false;
                 }
@@ -139,18 +154,32 @@ public class CommandManager implements CommandExecutor {
 
                 subLabel = args[0].toLowerCase();
                 switch (subLabel) {
-                    case "infect":
+                    case "infect": // /health infect
                         healthInfectCommand(sender, targetPlayer);
                         return true;
-                    case "cure":
+                    case "cure": // /health cure
                         healthCureCommand(sender, targetPlayer);
                         return true;
-                    case "syringe":
+                    case "syringe": // /health syringe
                         healthSyringeCommand(sender, targetPlayer);
                         return true;
                 }
         }
         return false;
+    }
+
+    private void environmentDoorInfoCommand(CommandSender sender) {
+        Player player = (Player) sender;
+        BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(player.getTargetBlockExact(10));
+        
+    }
+
+    private void environmentDoorRemoveCommand(CommandSender sender, JobType targetJobType) {
+
+    }
+
+    private void environmentDoorAddCommand(CommandSender sender, JobType targetJobType, int requiredLevel) {
+
     }
 
     private void jobsBrowseCommand(CommandSender sender) {
@@ -179,7 +208,7 @@ public class CommandManager implements CommandExecutor {
 
     private void jobsLeaveCommand(CommandSender sender, Player targetPlayer, JobType targetJobType) {
         if (JobManager.leaveJob(targetPlayer, targetJobType)) {
-            ScoreboardManager.getInstance().updateScoreboard(targetPlayer);
+            ScoreboardManager.singleton.updateScoreboard(targetPlayer);
             sender.sendMessage(
                     Component.text(targetPlayer.getName() + " has left the job " + targetJobType.name + "!",
                             NamedTextColor.GREEN));

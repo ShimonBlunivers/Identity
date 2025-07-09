@@ -52,7 +52,7 @@ public class Identity extends JavaPlugin implements Listener {
 
         CommandManager commandManager = new CommandManager();
 
-        HealthManager.getSingleton().load();
+        HealthManager.singleton.load();
 
         try {
             database = new Database(getDataFolder().getAbsolutePath() + "/identity.sqlite.db");
@@ -67,10 +67,10 @@ public class Identity extends JavaPlugin implements Listener {
         getCommand("jobs").setExecutor(commandManager);
         getCommand("health").setExecutor(commandManager);
 
-        getServer().getPluginManager().registerEvents(JobManager.getSingleton(), this);
-        getServer().getPluginManager().registerEvents(EnvironmentManager.getSingleton(), this);
-        getServer().getPluginManager().registerEvents(HealthManager.getSingleton(), this);
-        getServer().getPluginManager().registerEvents(ItemManager.getSingleton(), this);
+        getServer().getPluginManager().registerEvents(JobManager.singleton, this);
+        getServer().getPluginManager().registerEvents(EnvironmentManager.singleton, this);
+        getServer().getPluginManager().registerEvents(HealthManager.singleton, this);
+        getServer().getPluginManager().registerEvents(ItemManager.singleton, this);
         getServer().getPluginManager().registerEvents(this, this);
 
         database.players_reset();
@@ -78,15 +78,15 @@ public class Identity extends JavaPlugin implements Listener {
             database.players_join(player);
         }
 
-        JobManager.getSingleton().load();
-        EnvironmentManager.getSingleton().load();
-        ItemManager.getSingleton().load();
-        ScoreboardManager.getInstance().load();
+        JobManager.singleton.load();
+        EnvironmentManager.singleton.load();
+        ItemManager.singleton.load();
+        ScoreboardManager.singleton.load();
 
-        ScoreboardManager.getInstance().updateEverything();
+        ScoreboardManager.singleton.updateEverything();
 
-        tasks.add(getServer().getScheduler().runTaskTimer(this, EnvironmentManager.getSingleton(), 0, 200));
-        tasks.add(getServer().getScheduler().runTaskTimer(this, HealthManager.getSingleton(), 0, healthManagerTimer));
+        tasks.add(getServer().getScheduler().runTaskTimer(this, EnvironmentManager.singleton, 0, 200));
+        tasks.add(getServer().getScheduler().runTaskTimer(this, HealthManager.singleton, 0, healthManagerTimer));
 
         getLogger().info("Identity has been enabled!");
     }

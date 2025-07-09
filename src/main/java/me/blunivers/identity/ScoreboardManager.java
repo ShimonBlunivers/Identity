@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScoreboardManager extends Manager implements Listener {
+    public static final ScoreboardManager singleton = new ScoreboardManager();
 
-    private static final ScoreboardManager instance = new ScoreboardManager();
     private static final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection(); // for § formatting
 
     @Override
@@ -103,9 +103,5 @@ public class ScoreboardManager extends Manager implements Listener {
             .setScore(scoreindex--);
 
         player.setScoreboard(scoreboard);
-    }
-
-    public static ScoreboardManager getInstance() {
-        return instance;
     }
 }

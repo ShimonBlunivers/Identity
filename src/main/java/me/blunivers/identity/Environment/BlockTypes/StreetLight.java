@@ -13,21 +13,19 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public class StreetLight extends BlockType {
 
     private final Material onStreetLight = Material.REDSTONE_LAMP;
-    private final Material streetLight = Material.REDSTONE_LAMP;
-
+    private final Material offStreetLight = Material.REDSTONE_LAMP;
 
     public StreetLight() {
         super("StreetLight", Material.REDSTONE_LAMP);
-        daylight = EnvironmentManager.getSingleton().isDay();
+        daylight = EnvironmentManager.singleton.isDay();
     }
-
 
     private boolean daylight;
 
     @Override
     public void update() {
-        if (daylight != EnvironmentManager.getSingleton().isDay()) {
-            daylight = EnvironmentManager.getSingleton().isDay();
+        if (daylight != EnvironmentManager.singleton.isDay()) {
+            daylight = EnvironmentManager.singleton.isDay();
             for (BlockInstance customBlock : Identity.database.environment_getCustomBlockInstances(this, "world")) {
 
                 int x = customBlock.position.x;
@@ -37,14 +35,13 @@ public class StreetLight extends BlockType {
                 try {
                     Block block = Bukkit.getWorld("world").getBlockAt(x, y, z);
                     if (daylight) {
-                        block.setType(onStreetLight);
+                        block.setType(offStreetLight);
                     } else {
                         block.setType(onStreetLight);
                         Lightable lightable = (Lightable) block.getBlockData();
                         lightable.setLit(true);
                         block.setBlockData(lightable);
                     }
-
                 } catch (Exception e) {
                     System.out.println("Update street lights exception! " + e.getMessage());
                 }
@@ -54,8 +51,6 @@ public class StreetLight extends BlockType {
 
     @Override
     public void interact(PlayerInteractEvent event, int x, int y, int z, String world) {
-
+        return;
     }
-
-
 }

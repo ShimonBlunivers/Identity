@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.Set;
 
 public class JobManager extends Manager implements Listener {
-    private final static JobManager singleton = new JobManager();
+    public static final JobManager singleton = new JobManager();
+
     protected static String path = "";
     public static int jobLimit = 3;
 
@@ -50,7 +51,7 @@ public class JobManager extends Manager implements Listener {
             player.sendMessage(Component.text("Leave a job to join another one.", NamedTextColor.RED));
         } else {
             Identity.database.jobs_employPlayer(player, jobType);
-            ScoreboardManager.getInstance().updateScoreboard(player);
+            ScoreboardManager.singleton.updateScoreboard(player);
             player.sendMessage(
                     Component.text("You are now employed as " + jobType.name + "!", NamedTextColor.GREEN));
         }
@@ -62,7 +63,7 @@ public class JobManager extends Manager implements Listener {
             return false;
         }
         Identity.database.jobs_updateProgress(player, jobType, jobInstance.level + 1, 0);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
         return true;
     }
 
@@ -71,7 +72,7 @@ public class JobManager extends Manager implements Listener {
 
         if (playerJobTypes.contains(jobType)) {
             Identity.database.jobs_leaveJob(player, jobType);
-            ScoreboardManager.getInstance().updateScoreboard(player);
+            ScoreboardManager.singleton.updateScoreboard(player);
             return true;
         } 
         return false;
@@ -79,9 +80,5 @@ public class JobManager extends Manager implements Listener {
 
     public static JobType getJob(String name) {
         return JobType.get(name);
-    }
-
-    public static JobManager getSingleton() {
-        return singleton;
     }
 }

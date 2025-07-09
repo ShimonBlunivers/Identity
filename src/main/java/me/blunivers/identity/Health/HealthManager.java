@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class HealthManager extends Manager implements Runnable, Listener {
-    private final static HealthManager singleton = new HealthManager();
+    public static final HealthManager singleton = new HealthManager();
 
     private boolean loaded = false;
 
@@ -70,28 +70,24 @@ public class HealthManager extends Manager implements Runnable, Listener {
         return Identity.database.health_getConditionInstances(player, false).isEmpty();
     }
 
-    public static HealthManager getSingleton() {
-        return singleton;
-    }
-
     public static void addConditionToPlayer(Player player, ConditionType conditionType) {
         Identity.database.health_addCondition(player, conditionType);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public static void removeConditionFromPlayer(Player player, ConditionType conditionType) {
         Identity.database.health_removeCondition(player, conditionType);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public static void addMedicationToPlayer(Player player, MedicationType medicationType) {
         Identity.database.health_addMedication(player, medicationType);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public static void removeMedicationFromPlayer(Player player, MedicationType medicationType) {
         Identity.database.health_removeMedication(player, medicationType);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public void killPlayer(Player player, Illness illness) {
@@ -105,12 +101,12 @@ public class HealthManager extends Manager implements Runnable, Listener {
         } else
             player.setHealth(0);
         Identity.database.health_resetEverything(player);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public static void curePlayer(Player player) {
         Identity.database.health_resetConditions(player);
-        ScoreboardManager.getInstance().updateScoreboard(player);
+        ScoreboardManager.singleton.updateScoreboard(player);
     }
 
     public void update(int ticks) {
@@ -142,7 +138,7 @@ public class HealthManager extends Manager implements Runnable, Listener {
 
         Identity.database.health_healConditions();
 
-        ScoreboardManager.getInstance().updateEverything();
+        ScoreboardManager.singleton.updateEverything();
     }
 
     @Override
