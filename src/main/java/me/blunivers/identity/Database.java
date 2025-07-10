@@ -12,6 +12,7 @@ import org.joml.Vector3i;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Database {
 
@@ -256,10 +257,70 @@ public class Database {
         return environment_getCustomBlockInstance(x, y, z, world);
     }
 
-    public void environment_addMetadataToBlock(int x, int y, int z, String world, String metadata) {
+    public boolean environment_removeMetadataFromBlock(int x, int y, int z, String world, String metadataKey) {
+        String currentMetadata = "";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT metadata FROM evnironment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+            preparedStatement.setInt(1, x);
+            preparedStatement.setInt(2, y);
+            preparedStatement.setInt(3, z);
+            preparedStatement.setString(4, world);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                currentMetadata = resultSet.getString("metadata");
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to execute environment_removeMetadataFromBlock! " + e.getMessage());
+        }
+        if (currentMetadata.isEmpty()) {
+            return false;
+        }
+        if (!currentMetadata.contains(metadataKey)) {
+            return false;
+        }
+
+        Map<String, String> metadataMap = Utility.metadataToMap(currentMetadata);
+        metadataMap.remove(metadataKey);
+
+        currentMetadata = Utility.metadataSerialize(metadataMap);
+
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE environment_blocks SET metadata = ? WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
-            preparedStatement.setString(1, metadata);
+            preparedStatement.setString(1, currentMetadata);
+            preparedStatement.setInt(2, x);
+            preparedStatement.setInt(3, y);
+            preparedStatement.setInt(4, z);
+            preparedStatement.setString(5, world);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Failed to execute environment_removeMetadataFromBlock! " + e.getMessage());
+        }
+        return true;
+    }
+
+    public void environment_addMetadataToBlock(int x, int y, int z, String world, String key, String metadata) {
+        String currentMetadata = "";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT metadata FROM evnironment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+            preparedStatement.setInt(1, x);
+            preparedStatement.setInt(2, y);
+            preparedStatement.setInt(3, z);
+            preparedStatement.setString(4, world);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                currentMetadata = resultSet.getString("metadata");
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to execute environment_addMetadataToBlock! " + e.getMessage());
+        }
+        if (currentMetadata.isEmpty()) {
+            currentMetadata = metadata;
+        } else {
+            currentMetadata += "," + metadata;
+        }
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "UPDATE environment_blocks SET metadata = ? WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+            preparedStatement.setString(1, currentMetadata);
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);

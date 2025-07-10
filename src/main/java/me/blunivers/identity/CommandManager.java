@@ -125,16 +125,40 @@ public class CommandManager implements CommandExecutor {
                         subLabel = args[1].toLowerCase();
                         switch (subLabel) {
                             case "info": // /environment door info
+                                environmentDoorInfoCommand(sender);
                                 return true;
                             case "remove": // /environment door remove
-                                if (args.length < 4) {
+                                if (args.length < 3) {
                                     return false;
                                 }
+                                targetJobType = JobManager.getJob(args[2]);
+                                if (targetJobType == null) {
+                                    sender.sendMessage(Component.text("Invalid job!", NamedTextColor.RED));
+                                    return false;
+                                }
+
+                                environmentDoorRemoveCommand(sender, targetJobType);
                                 return true;
                             case "add": // /environment door add
                                 if (args.length < 4) {
                                     return false;
                                 }
+                                targetJobType = JobManager.getJob(args[2]);
+                                if (targetJobType == null) {
+                                    sender.sendMessage(Component.text("Invalid job!", NamedTextColor.RED));
+                                    return false;
+                                }
+
+                                int requiredLevel;
+                                try {
+                                    requiredLevel = Integer.parseInt(args[3]);
+                                }
+                                catch(NumberFormatException e) {
+                                    sender.sendMessage(Component.text("Invalid required-level!", NamedTextColor.RED));
+                                    return false;
+                                }
+
+                                environmentDoorAddCommand(sender, targetJobType, requiredLevel);
                                 return true;
                         }
                 }
@@ -162,7 +186,6 @@ public class CommandManager implements CommandExecutor {
                         return true;
                     case "syringe": // /health syringe
                         healthSyringeCommand(sender, targetPlayer);
-                        return true;
                 }
         }
         return false;
@@ -171,11 +194,18 @@ public class CommandManager implements CommandExecutor {
     private void environmentDoorInfoCommand(CommandSender sender) {
         Player player = (Player) sender;
         BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(player.getTargetBlockExact(10));
-        
+        if (customBlock == null) {
+            sender.sendMessage(Component.text("These doors are not custom!", NamedTextColor.RED));
+            return;
+        }
+        if (customBlock.metadata.isEmpty()) {
+            sender.sendMessage(Component.text("The door doesn't have any permissions set.", NamedTextColor.YELLOW));
+        }
+        sender.sendMessage(Component.text("The door has the following permissions set:", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text(customBlock.metadata, NamedTextColor.WHITE));
     }
 
     private void environmentDoorRemoveCommand(CommandSender sender, JobType targetJobType) {
-
     }
 
     private void environmentDoorAddCommand(CommandSender sender, JobType targetJobType, int requiredLevel) {

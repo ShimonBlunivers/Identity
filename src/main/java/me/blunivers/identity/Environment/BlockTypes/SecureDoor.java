@@ -5,7 +5,6 @@ import me.blunivers.identity.Environment.BlockType;
 import me.blunivers.identity.Identity;
 import me.blunivers.identity.Jobs.JobInstance;
 import me.blunivers.identity.Jobs.JobType;
-import me.blunivers.identity.Menus.DoorMaker;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -70,7 +69,7 @@ public class SecureDoor extends BlockType {
     @Override
     public BlockInstance place(Player player, int x, int y, int z, String world) {
         BlockInstance blockInstance = super.place(player, x, y, z, world);
-        new DoorMaker(player, blockInstance);
+        // new DoorMaker(player, blockInstance);
         return blockInstance;
     }
 
