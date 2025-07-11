@@ -87,17 +87,27 @@ public class EnvironmentManager extends Manager implements Runnable, Listener {
         return null;
     }
 
+    public void removeMetadataFromBlock(Block block, String metadataKey) {
+        Identity.database.environment_removeMetadataFromBlock(block.getX(), block.getY(), block.getZ(),
+                block.getWorld().getName(), metadataKey);
+    }
+
+    public void addMetadataToBlock(Block block, String metadataKey, String metadata) {
+        Identity.database.environment_addMetadataToBlock(block.getX(), block.getY(), block.getZ(),
+                block.getWorld().getName(), metadataKey, metadata);
+    }
+
     @EventHandler
     public void useIdentityStick(PlayerInteractEvent event) {
         if (event.getItem() == null || event.getClickedBlock() == null || !event.getPlayer().isOp()) {
             return;
         }
         ItemStack itemStack = event.getItem();
-        if (itemStack.getType().equals(Material.STICK)) {
+        if (!itemStack.getType().equals(Material.STICK)) {
             return;
         }
-        if (!(Utility.componentToString(itemStack.getItemMeta().displayName())
-                .equals("IdentityStick" + Identity.identificator))) {
+        if (!Utility.componentToString(itemStack.getItemMeta().displayName())
+                .equals("IdentityStick" + Identity.identificator)) {
             return;
         }
         event.setCancelled(true);

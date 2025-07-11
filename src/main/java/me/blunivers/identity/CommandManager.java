@@ -11,6 +11,7 @@ import me.blunivers.identity.Menus.BlockMenu;
 import me.blunivers.identity.Jobs.JobManager;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.command.*;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
@@ -152,9 +153,15 @@ public class CommandManager implements CommandExecutor {
                                 int requiredLevel;
                                 try {
                                     requiredLevel = Integer.parseInt(args[3]);
-                                }
-                                catch(NumberFormatException e) {
+                                } catch (NumberFormatException e) {
                                     sender.sendMessage(Component.text("Invalid required-level!", NamedTextColor.RED));
+                                    return false;
+                                }
+                                if (requiredLevel < 0 || requiredLevel > targetJobType.maxLevel) {
+                                    sender.sendMessage(Component.text(
+                                            "Invalid required-level! It needs to a number between 0 and "
+                                                    + Integer.toString(targetJobType.maxLevel) + " (inclusive)!",
+                                            NamedTextColor.RED));
                                     return false;
                                 }
 
@@ -193,23 +200,52 @@ public class CommandManager implements CommandExecutor {
 
     private void environmentDoorInfoCommand(CommandSender sender) {
         Player player = (Player) sender;
-        BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(player.getTargetBlockExact(10));
+        Block block = player.getTargetBlockExact(10);
+        if (block == null) {
+            sender.sendMessage(Component.text("You need to look at a block!", NamedTextColor.RED));
+            return;
+        }
+        BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(block);
         if (customBlock == null) {
             sender.sendMessage(Component.text("These doors are not custom!", NamedTextColor.RED));
             return;
         }
-        if (customBlock.metadata.isEmpty()) {
+        if (customBlock.metadata == null || customBlock.metadata.isEmpty()) {
             sender.sendMessage(Component.text("The door doesn't have any permissions set.", NamedTextColor.YELLOW));
+            return;
         }
         sender.sendMessage(Component.text("The door has the following permissions set:", NamedTextColor.GREEN));
         sender.sendMessage(Component.text(customBlock.metadata, NamedTextColor.WHITE));
     }
 
     private void environmentDoorRemoveCommand(CommandSender sender, JobType targetJobType) {
+        Player player = (Player) sender;
+        Block block = player.getTargetBlockExact(10);
+        if (block == null) {
+            sender.sendMessage(Component.text("You need to look at a block!", NamedTextColor.RED));
+            return;
+        }
+        BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(block);
+        if (customBlock == null) {
+            sender.sendMessage(Component.text("These doors are not custom!", NamedTextColor.RED));
+            return;
+        }
+        EnvironmentManager.singleton.removeMetadataFromBlock(block, targetJobType.name);
     }
 
     private void environmentDoorAddCommand(CommandSender sender, JobType targetJobType, int requiredLevel) {
-
+        Player player = (Player) sender;
+        Block block = player.getTargetBlockExact(10);
+        if (block == null) {
+            sender.sendMessage(Component.text("You need to look at a block!", NamedTextColor.RED));
+            return;
+        }
+        BlockInstance customBlock = EnvironmentManager.singleton.getCustomBlock(block);
+        if (customBlock == null) {
+            sender.sendMessage(Component.text("These doors are not custom!", NamedTextColor.RED));
+            return;
+        }
+        EnvironmentManager.singleton.addMetadataToBlock(block, targetJobType.name, Integer.toString(requiredLevel));
     }
 
     private void jobsBrowseCommand(CommandSender sender) {

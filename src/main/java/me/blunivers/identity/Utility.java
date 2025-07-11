@@ -8,6 +8,9 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class Utility {
 	public static String componentToString(Component component) {
+		if (component == null) {
+			return "";
+		}
 		return PlainTextComponentSerializer.plainText().serialize(component);
 	}
 

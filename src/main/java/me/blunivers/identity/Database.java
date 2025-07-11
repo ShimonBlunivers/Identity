@@ -93,19 +93,22 @@ public class Database {
 
     private void initializeTables(Statement statement) throws SQLException {
         for (ConditionType conditionType : ConditionType.conditions.values()) {
-            if (conditionType instanceof Illness illness)
+            if (conditionType instanceof Illness illness) {
                 statement.execute(
                         "INSERT OR REPLACE INTO health_condition_types (condition_id, time_before_next_stage, illness) VALUES ('"
                                 + illness.name + "', " + illness.ticksToNextStage + ", TRUE)");
-            else
+            } else {
                 statement.execute("INSERT OR REPLACE INTO health_condition_types (condition_id, illness) VALUES ("
                         + conditionType.name + ", FALSE)");
+            }
         }
-        for (MedicationType medicationType : MedicationType.medications.values())
-            for (ConditionType against : medicationType.protectionAgainst)
+        for (MedicationType medicationType : MedicationType.medications.values()) {
+            for (ConditionType against : medicationType.protectionAgainst) {
                 statement.execute(
                         "INSERT OR REPLACE INTO health_medication_types (medication_id, condition_id) VALUES ('"
                                 + medicationType.name + "', '" + against.name + "')");
+            }
+        }
     }
 
     public void closeConnection() throws SQLException {
@@ -258,9 +261,9 @@ public class Database {
     }
 
     public boolean environment_removeMetadataFromBlock(int x, int y, int z, String world, String metadataKey) {
-        String currentMetadata = "";
+        String currentMetadata = null;
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT metadata FROM evnironment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+                "SELECT metadata FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
             preparedStatement.setInt(1, x);
             preparedStatement.setInt(2, y);
             preparedStatement.setInt(3, z);
@@ -268,11 +271,11 @@ public class Database {
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 currentMetadata = resultSet.getString("metadata");
-            }
+            } 
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_removeMetadataFromBlock! " + e.getMessage());
         }
-        if (currentMetadata.isEmpty()) {
+        if (currentMetadata == null || currentMetadata.isEmpty()) {
             return false;
         }
         if (!currentMetadata.contains(metadataKey)) {
@@ -301,7 +304,7 @@ public class Database {
     public void environment_addMetadataToBlock(int x, int y, int z, String world, String key, String metadata) {
         String currentMetadata = "";
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT metadata FROM evnironment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
+                "SELECT metadata FROM environment_blocks WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
             preparedStatement.setInt(1, x);
             preparedStatement.setInt(2, y);
             preparedStatement.setInt(3, z);
@@ -309,18 +312,27 @@ public class Database {
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 currentMetadata = resultSet.getString("metadata");
+            } else {
+                return;
             }
         } catch (SQLException e) {
             System.out.println("Failed to execute environment_addMetadataToBlock! " + e.getMessage());
         }
-        if (currentMetadata.isEmpty()) {
-            currentMetadata = metadata;
+        if (currentMetadata == null || currentMetadata.isEmpty()) {
+            currentMetadata = key + ":" + metadata;
         } else {
-            currentMetadata += "," + metadata;
+            Map<String, String> metadataMap = Utility.metadataToMap(currentMetadata);
+            metadataMap.put(key, metadata);
+            currentMetadata = Utility.metadataSerialize(metadataMap);
         }
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE environment_blocks SET metadata = ? WHERE x = ? AND y = ? AND z = ? AND world = ?")) {
             preparedStatement.setString(1, currentMetadata);
+            System.out.println(x);
+            System.out.println(y);
+            System.out.println(z);
+            System.out.println(world);
+            System.out.println(currentMetadata);
             preparedStatement.setInt(2, x);
             preparedStatement.setInt(3, y);
             preparedStatement.setInt(4, z);
